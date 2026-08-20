@@ -1,0 +1,48 @@
+{
+  "name": "fashion-store",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@prisma/client": "^6.4.0",
+    "bcryptjs": "^3.0.2",
+    "clsx": "^2.1.1",
+    "jspdf": "^3.0.0",
+    "lucide-react": "^0.475.0",
+    "next": "^15.1.7",
+    "next-auth": "^4.24.11",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "recharts": "^2.15.1",
+    "tailwind-merge": "^3.0.1",
+    "xlsx": "^0.18.5",
+    "zod": "^3.24.2",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.7",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.13.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "eslint": "^9.20.1",
+    "eslint-config-next": "^15.1.7",
+    "prisma": "^6.4.0",
+    "tailwindcss": "^4.0.7",
+    "tsx": "^4.23.12",
+    "typescript": "^5.7.3"
+  }
+}

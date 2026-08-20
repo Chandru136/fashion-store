@@ -1,0 +1,166 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --background: #FAF7F2;
+  --foreground: #1C1917;
+  
+  --wine-900: #2C070D;
+  --wine-800: #4A0E17;
+  --wine-700: #6B1D2F;
+  --wine-600: #8B263E;
+  
+  --gold-600: #9A7B1C;
+  --gold-500: #D4AF37;
+  --gold-400: #E6CA65;
+  --gold-300: #F3E5AB;
+
+  --ivory-50: #FFFFFF;
+  --ivory-100: #FAF7F2;
+  --ivory-200: #F3EEE5;
+  --ivory-300: #E6DDD0;
+
+  --blush-100: #FAF0F1;
+  --blush-200: #F3DBDE;
+  --blush-300: #E8C5C8;
+
+  --obsidian: #1C1917;
+  --charcoal: #2C2C2C;
+  --muted-text: #66605C;
+  
+  --font-serif: 'Playfair Display', 'Cinzel', Georgia, serif;
+  --font-display: 'Cinzel', 'Playfair Display', serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-wine-900: var(--wine-900);
+  --color-wine-800: var(--wine-800);
+  --color-wine-700: var(--wine-700);
+  --color-wine-600: var(--wine-600);
+  
+  --color-gold-600: var(--gold-600);
+  --color-gold-500: var(--gold-500);
+  --color-gold-400: var(--gold-400);
+  --color-gold-300: var(--gold-300);
+  
+  --color-ivory-50: var(--ivory-50);
+  --color-ivory-100: var(--ivory-100);
+  --color-ivory-200: var(--ivory-200);
+  --color-ivory-300: var(--ivory-300);
+
+  --color-blush-100: var(--blush-100);
+  --color-blush-200: var(--blush-200);
+  --color-blush-300: var(--blush-300);
+
+  --color-obsidian: var(--obsidian);
+  --color-charcoal: var(--charcoal);
+
+  --font-serif: var(--font-serif);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .font-serif-heading {
+  font-family: var(--font-serif);
+}
+
+.font-brand-title {
+  font-family: var(--font-display);
+}
+
+/* Custom Utilities & Animations */
+.gold-gradient-text {
+  background: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 50%, #9A7B1C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #D4AF37 0%, #E6CA65 50%, #B8860B 100%);
+}
+
+.wine-gradient-bg {
+  background: linear-gradient(135deg, #4A0E17 0%, #6B1D2F 50%, #2C070D 100%);
+}
+
+.gold-border {
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.gold-border-glow:hover {
+  border-color: rgba(212, 175, 55, 0.8);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.25);
+}
+
+.glass-header {
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-dark {
+  background: rgba(44, 7, 13, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.luxury-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(214, 203, 190, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.luxury-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px -10px rgba(74, 14, 23, 0.12);
+  border-color: rgba(212, 175, 55, 0.5);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9A7B1C;
+}
+
+/* Micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-glow {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
