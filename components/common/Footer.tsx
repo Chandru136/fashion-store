@@ -28,7 +28,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-wine-900/40 border gold-border">
           <Truck className="w-6 h-6 text-gold-400" />
           <h4 className="font-serif font-bold text-gold-300">Express Worldwide Shipping</h4>
-          <p className="text-[11px] text-ivory-300 font-light">Free delivery across India above ₹2,000.</p>
+          <p className="text-[11px] text-ivory-300 font-light">Free delivery across India above ₹3,000.</p>
         </div>
         <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-wine-900/40 border gold-border">
           <RefreshCw className="w-6 h-6 text-gold-400" />
@@ -48,11 +48,11 @@ export function Footer() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 bg-gold-500 rounded-full flex items-center justify-center text-wine-900 font-bold text-lg font-brand-title">
-              AH
+              SC
             </div>
             <div>
               <span className="font-brand-title text-xl font-bold text-gold-300 tracking-tight block leading-none">
-                AARNA HERITAGE
+                SUDHA COLLECTIONS
               </span>
               <span className="text-[9px] font-semibold text-gold-400 tracking-[0.2em] uppercase">
                 FINE SILKS & COUTURE
@@ -60,7 +60,7 @@ export function Footer() {
             </div>
           </div>
           <p className="text-ivory-300 font-light leading-relaxed max-w-sm">
-            Aarna Heritage celebrates India’s timeless textile legacy. From authentic Kanchipuram bridal silks to regal Banarasi brocades and handcrafted groom Sherwanis, every creation is a masterwork of gold zari and royal craftsmanship.
+            Sudha Collections celebrates India’s timeless textile legacy. From authentic Kanchipuram bridal silks to regal Banarasi brocades and handcrafted groom Sherwanis, every creation is a masterwork of gold zari and royal craftsmanship.
           </p>
 
           <div className="pt-2 flex items-center gap-3 text-gold-400">
@@ -133,7 +133,7 @@ export function Footer() {
 
       {/* Copyright */}
       <div className="max-w-7xl mx-auto px-4 pt-8 border-t border-wine-800 text-center text-[11px] text-ivory-300 flex flex-col md:flex-row items-center justify-between gap-4">
-        <p>© 2026 Aarna Heritage Silks & Couture. All Rights Reserved. Original Brand Identity.</p>
+        <p>© 2026 Sudha Collections. All Rights Reserved.</p>
         <div className="flex items-center gap-4 text-gold-400">
           <span>Terms of Service</span>
           <span>•</span>
