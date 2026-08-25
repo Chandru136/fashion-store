@@ -24,6 +24,7 @@ export async function getHomepageData() {
       where: { status: "ACTIVE", bestseller: true },
       include: {
         images: { orderBy: { sortOrder: "asc" } },
+        variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
         category: { select: { name: true } },
         reviews: { select: { rating: true } },
       },
@@ -34,6 +35,7 @@ export async function getHomepageData() {
       where: { status: "ACTIVE", newArrival: true },
       include: {
         images: { orderBy: { sortOrder: "asc" } },
+        variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
         category: { select: { name: true } },
         reviews: { select: { rating: true } },
       },
@@ -45,6 +47,7 @@ export async function getHomepageData() {
       where: { status: "ACTIVE", featured: true },
       include: {
         images: { orderBy: { sortOrder: "asc" } },
+        variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
         category: { select: { name: true } },
         reviews: { select: { rating: true } },
       },
@@ -73,6 +76,8 @@ export async function getHomepageData() {
         reviewCount: p.reviews.length,
         bestseller: p.bestseller,
         newArrival: p.newArrival,
+        variantId: p.variants[0]?.id,
+        colors: [...new Set(p.variants.map((variant: { color: string | null }) => variant.color).filter((color): color is string => Boolean(color)))],
       };
     });
 

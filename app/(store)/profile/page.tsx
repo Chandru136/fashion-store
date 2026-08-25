@@ -6,7 +6,7 @@ import { User, Package, MapPin, Heart, ShieldCheck, LogOut } from "lucide-react"
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/profile");
 
   const user = JSON.parse(sessionCookie.value);

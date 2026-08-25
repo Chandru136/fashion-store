@@ -32,7 +32,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     <div className="space-y-6">
       <div className="border-b border-stone-200 pb-4">
         <h1 className="font-serif text-3xl font-bold text-wine-900">Orders & Fulfillment Control</h1>
-        <p className="text-xs text-stone-500 mt-1">Manage order statuses (PENDING {"->"} CONFIRMED {"->"} PROCESSING {"->"} PACKED {"->"} SHIPPED {"->"} DELIVERED), print invoices, and update tracking numbers.</p>
+        <p className="text-xs text-stone-500 mt-1">Manage order statuses (PENDING -> CONFIRMED -> PROCESSING -> PACKED -> SHIPPED -> DELIVERED), print invoices, and update tracking numbers.</p>
       </div>
 
       {/* Filter Tabs */}

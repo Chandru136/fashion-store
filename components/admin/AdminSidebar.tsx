@@ -47,14 +47,14 @@ export function AdminSidebar({ user }: { user: any }) {
         {/* Admin Header Branding */}
         <div className="flex items-center gap-2 px-2 pt-2 border-b border-wine-700/60 pb-4">
           <div className="w-9 h-9 bg-gold-500 text-wine-900 rounded-full flex items-center justify-center font-bold font-brand-title text-base shadow">
-            AH
+            SC
           </div>
           <div>
             <span className="font-brand-title text-lg font-bold text-gold-300 tracking-tight block leading-none">
               ADMIN PORTAL
             </span>
             <span className="text-[9px] font-semibold text-gold-400 tracking-widest uppercase">
-              Aarna Heritage
+              Sudha Collections
             </span>
           </div>
         </div>

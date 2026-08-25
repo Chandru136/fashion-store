@@ -41,7 +41,7 @@ export default function LoginPage() {
             AH
           </div>
           <h1 className="font-serif text-2xl font-bold text-wine-900 pt-2">Welcome Back</h1>
-          <p className="text-xs text-stone-500">Sign in to your Aarna Heritage account</p>
+          <p className="text-xs text-stone-500">Sign in to your Sudha Collections account</p>
         </div>
 
         {error && <div className="p-3 bg-red-50 text-red-700 text-xs font-bold rounded border border-red-200">{error}</div>}

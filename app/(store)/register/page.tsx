@@ -38,7 +38,7 @@ export default function RegisterPage() {
           <div className="w-12 h-12 wine-gradient-bg rounded-full flex items-center justify-center mx-auto border gold-border text-gold-300 font-bold text-xl font-brand-title shadow">
             AH
           </div>
-          <h1 className="font-serif text-2xl font-bold text-wine-900 pt-2">Join Aarna Heritage</h1>
+          <h1 className="font-serif text-2xl font-bold text-wine-900 pt-2">Join Sudha Collections</h1>
           <p className="text-xs text-stone-500">Create an account for exclusive privileges & order tracking</p>
         </div>
 

@@ -163,7 +163,7 @@ export function MegaMenu() {
 
   return (
     <nav className="relative bg-wine-900 border-t border-b gold-border text-ivory-50 text-xs shadow-md">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 hidden md:flex items-center justify-between">
         <ul className="flex items-center space-x-1 lg:space-x-4">
           {menuItems.map((item) => (
             <li
@@ -274,6 +274,12 @@ export function MegaMenu() {
               NEW ARRIVALS ✦
             </Link>
           </li>
+        </ul>
+      </div>
+      <div className="md:hidden overflow-x-auto scrollbar-none">
+        <ul className="flex w-max min-w-full items-center gap-1 px-3 py-2">
+          {menuItems.map((item) => <li key={item.id}><Link href={`/category/${item.categories[0]?.slug || "pure-silk-sarees"}`} className="block whitespace-nowrap rounded px-2.5 py-1.5 font-semibold tracking-wider text-ivory-100 active:bg-wine-800">{item.label}</Link></li>)}
+          <li><Link href="/products?newArrival=true" className="block whitespace-nowrap rounded px-2.5 py-1.5 font-bold tracking-wider text-gold-300">NEW ARRIVALS</Link></li>
         </ul>
       </div>
     </nav>

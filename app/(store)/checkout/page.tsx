@@ -6,7 +6,7 @@ import { CheckoutFormClient } from "./CheckoutFormClient";
 
 export default async function CheckoutPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   let user = null;
 
   if (sessionCookie?.value) {

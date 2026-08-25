@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!sessionCookie?.value) return null;
   try {
     const userObj = JSON.parse(sessionCookie.value);

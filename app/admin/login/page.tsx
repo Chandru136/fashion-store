@@ -35,10 +35,10 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 space-y-6 border-2 gold-border">
         <div className="text-center space-y-2">
           <div className="w-14 h-14 wine-gradient-bg rounded-full flex items-center justify-center mx-auto border-2 gold-border text-gold-300 font-bold text-2xl font-brand-title shadow-lg">
-            SUDHA
+            AH
           </div>
           <h1 className="font-serif text-2xl font-bold text-wine-900 pt-2">Admin Portal Authentication</h1>
-          <p className="text-xs text-stone-500">Restricted access for Aarna Heritage administrators</p>
+          <p className="text-xs text-stone-500">Restricted access for Sudha Collections administrators</p>
         </div>
 
         {error && (

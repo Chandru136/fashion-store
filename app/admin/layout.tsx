@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // If on login route, render standalone container
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   let user = null;
 
   if (sessionCookie?.value) {
@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-wine-900">
-              Aarna Heritage Administration Systems
+              Sudha Collections Administration Systems
             </span>
           </div>
           <div className="text-xs text-stone-500 font-mono">

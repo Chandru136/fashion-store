@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting Aarna Heritage Database Seeding...");
+  console.log("🌱 Starting Sudha Collections Database Seeding...");
 
   // 1. Roles & Permissions Setup
   const adminPassword = await bcrypt.hash("Admin@12345", 10);
@@ -16,7 +16,7 @@ async function main() {
     where: { email: "admin@example.com" },
     update: {},
     create: {
-      name: "Aarna Admin",
+      name: "Sudha Collections Admin",
       email: "admin@example.com",
       phone: "+91 9876543210",
       passwordHash: adminPassword,
@@ -285,7 +285,7 @@ async function main() {
   // 7. Coupons Setup (10 Coupons)
   console.log("🎟️ Seeding Coupons...");
   const couponsData = [
-    { code: "AARNA10", discountType: DiscountType.PERCENTAGE, discountValue: 10, minimumOrderAmount: 2000, maximumDiscount: 1000, endDate: new Date("2027-12-31") },
+    { code: "SUDHA10", discountType: DiscountType.PERCENTAGE, discountValue: 10, minimumOrderAmount: 2000, maximumDiscount: 1000, endDate: new Date("2027-12-31") },
     { code: "ROYALSILK15", discountType: DiscountType.PERCENTAGE, discountValue: 15, minimumOrderAmount: 10000, maximumDiscount: 3000, endDate: new Date("2027-12-31") },
     { code: "FESTIVE500", discountType: DiscountType.FIXED_AMOUNT, discountValue: 500, minimumOrderAmount: 4999, endDate: new Date("2027-12-31") },
     { code: "BRIDAL2000", discountType: DiscountType.FIXED_AMOUNT, discountValue: 2000, minimumOrderAmount: 25000, endDate: new Date("2027-12-31") },
@@ -352,7 +352,7 @@ async function main() {
         slug,
         sku,
         description: `Experience timeless grandeur with our ${name}. Meticulously handcrafted by master artisans using authentic ${template.fabric}. Designed to elevate your wardrobe for ${template.occasion} celebrations with regal beauty and lasting grace.`,
-        shortDescription: `Authentic ${template.fabric} ${template.occasion} apparel from Aarna Heritage.`,
+        shortDescription: `Authentic ${template.fabric} ${template.occasion} apparel from Sudha Collections.`,
         categoryId: (cat as any).id,
         brandId: brand.id,
         mrp: template.mrp,
@@ -416,7 +416,7 @@ async function main() {
               userId: customers[i % customers.length].id,
               rating: 5,
               title: "Exquisite Quality & Fast Shipping!",
-              comment: `Absolutely breathtaking ${template.fabric}! The zari shine and texture is 100% authentic. Truly loved buying from Aarna Heritage.`,
+              comment: `Absolutely breathtaking ${template.fabric}! The zari shine and texture is 100% authentic. Truly loved buying from Sudha Collections.`,
               status: "APPROVED",
             },
             {

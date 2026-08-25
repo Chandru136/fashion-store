@@ -83,7 +83,7 @@ export function ProductDetailClient({ product }: { product: any }) {
       <div className="lg:col-span-5 space-y-6">
         <div>
           <span className="text-xs font-bold tracking-[0.2em] text-gold-600 uppercase">
-            {product.category.name} • {product.brand?.name || "Aarna Heritage"}
+            {product.category.name} • {product.brand?.name || "Sudha Collections"}
           </span>
           <h1 className="font-serif text-2xl md:text-3xl font-bold text-wine-900 mt-1 leading-snug">
             {product.name}

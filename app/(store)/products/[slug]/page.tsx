@@ -9,10 +9,10 @@ import { ProductDetailClient } from "./ProductDetailClient";
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const p = await params;
   const product = await getProductBySlug(p.slug);
-  if (!product) return { title: "Product Not Found | Aarna Heritage" };
+  if (!product) return { title: "Product Not Found | Sudha Collections" };
 
   return {
-    title: `${product.name} | Aarna Heritage Silks`,
+    title: `${product.name} | Sudha Collections`,
     description: product.shortDescription || product.description.slice(0, 160),
     openGraph: {
       title: product.name,
@@ -38,11 +38,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     sku: product.sku,
     brand: {
       "@type": "Brand",
-      name: product.brand?.name || "Aarna Heritage",
+      name: product.brand?.name || "Sudha Collections",
     },
     offers: {
       "@type": "Offer",
-      url: `https://aarnaheritage.com/products/${product.slug}`,
+      url: `https://sudhacollections.com/products/${product.slug}`,
       priceCurrency: "INR",
       price: product.sellingPrice,
       availability: "https://schema.org/InStock",

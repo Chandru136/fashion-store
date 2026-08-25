@@ -5,7 +5,7 @@ import { MapPin, Plus } from "lucide-react";
 
 export default async function AddressesPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/addresses");
 
   const user = JSON.parse(sessionCookie.value);

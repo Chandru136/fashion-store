@@ -17,26 +17,26 @@ export function FeaturedCollections({ collections = [] }: { collections: Collect
   if (collections.length === 0) return null;
 
   return (
-    <section className="py-16 bg-ivory-100 border-b border-ivory-300">
+    <section className="py-10 sm:py-16 bg-ivory-100 border-b border-ivory-300">
       <div className="max-w-7xl mx-auto px-4">
         {/* Section Title Header */}
-        <div className="text-center max-w-xl mx-auto mb-12 space-y-2">
+        <div className="text-center max-w-xl mx-auto mb-7 sm:mb-12 space-y-2">
           <span className="text-xs font-bold tracking-[0.25em] text-gold-600 uppercase">
             Curated Curations
           </span>
-          <h2 className="font-serif text-3xl md:text-4xl font-bold text-wine-900">
+          <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-wine-900">
             Editorial Collections
           </h2>
           <div className="w-16 h-0.5 gold-gradient-bg mx-auto rounded-full mt-3" />
         </div>
 
         {/* Collection Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 scrollbar-none md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 md:gap-6">
           {collections.map((item) => (
             <Link
               key={item.id}
               href={`/products?collection=${item.slug}`}
-              className="group relative h-[420px] rounded-lg overflow-hidden shadow-lg border gold-border group-hover:border-gold-500 transition-all block"
+              className="group relative h-[360px] w-[82vw] max-w-[360px] shrink-0 snap-start rounded-lg overflow-hidden shadow-lg border gold-border group-hover:border-gold-500 transition-all block md:h-[420px] md:w-auto md:max-w-none"
             >
               <img
                 src={item.image}

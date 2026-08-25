@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Heart, ShoppingBag, User, LogOut, ShieldCheck, ChevronDown, Sparkles } from "lucide-react";
+import { Search, Heart, ShoppingBag, User, LogOut, ChevronDown, X } from "lucide-react";
 import { MegaMenu } from "./MegaMenu";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -19,6 +19,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
   const [searchQuery, setSearchQuery] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [cartData, setCartData] = useState<any>({ items: [], subtotal: 0, shipping: 0, tax: 0, grandTotal: 0 });
   const router = useRouter();
 
@@ -53,18 +54,18 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-ivory-300 shadow-sm">
       <AnnouncementBar />
 
-      <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 wine-gradient-bg rounded-full flex items-center justify-center border gold-border shadow-md group-hover:scale-105 transition-transform">
-            <span className="font-brand-title text-gold-300 font-bold text-xl tracking-tighter">AH</span>
+          <div className="w-9 h-9 sm:w-10 sm:h-10 wine-gradient-bg rounded-full flex items-center justify-center border gold-border shadow-md group-hover:scale-105 transition-transform">
+            <span className="font-brand-title text-gold-300 font-bold text-lg sm:text-xl tracking-tighter">SC</span>
           </div>
           <div>
-            <span className="font-brand-title text-2xl font-bold tracking-tight text-wine-900 block leading-none">
-              AARNA
+            <span className="font-brand-title text-xl sm:text-2xl font-bold tracking-tight text-wine-900 block leading-none">
+              SUDHA
             </span>
             <span className="text-[9px] font-semibold tracking-[0.25em] text-gold-600 uppercase block mt-0.5">
-              HERITAGE SILKS
+              COLLECTIONS
             </span>
           </div>
         </Link>
@@ -90,7 +91,14 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
         </form>
 
         {/* User Account / Wishlist / Cart Controls */}
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+          <button
+            onClick={() => setIsMobileSearchOpen((open) => !open)}
+            className="md:hidden grid h-9 w-9 place-items-center rounded-full text-wine-800 transition hover:bg-ivory-100"
+            aria-label={isMobileSearchOpen ? "Close search" : "Search products"}
+          >
+            {isMobileSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+          </button>
           {/* User Account Menu */}
           <div className="relative">
             {user ? (
@@ -165,6 +173,23 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
           </button>
         </div>
       </div>
+
+      {isMobileSearchOpen && (
+        <form onSubmit={handleSearchSubmit} className="md:hidden border-t border-ivory-300 bg-white px-3 py-3">
+          <div className="relative mx-auto max-w-7xl">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+            <input
+              autoFocus
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search silks, sarees, lehengas..."
+              className="w-full rounded-full border border-ivory-300 bg-ivory-100 py-3 pl-10 pr-24 text-sm text-wine-900 placeholder-stone-400 outline-none focus:border-gold-500"
+            />
+            <button type="submit" className="absolute right-1 top-1 bottom-1 rounded-full wine-gradient-bg px-4 text-xs font-bold text-gold-300">Search</button>
+          </div>
+        </form>
+      )}
 
       {/* Mega Navigation Bar */}
       <MegaMenu />

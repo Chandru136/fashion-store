@@ -28,7 +28,7 @@ export function Footer() {
         <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-wine-900/40 border gold-border">
           <Truck className="w-6 h-6 text-gold-400" />
           <h4 className="font-serif font-bold text-gold-300">Express Worldwide Shipping</h4>
-          <p className="text-[11px] text-ivory-300 font-light">Free delivery across India above ₹3,000.</p>
+          <p className="text-[11px] text-ivory-300 font-light">Free delivery across India above ₹2,000.</p>
         </div>
         <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-wine-900/40 border gold-border">
           <RefreshCw className="w-6 h-6 text-gold-400" />

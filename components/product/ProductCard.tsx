@@ -125,7 +125,7 @@ export function ProductCard({
       </div>
 
       {/* Product Information Footer */}
-      <div className="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+      <div className="p-2.5 sm:p-3.5 flex-1 flex flex-col justify-between space-y-2">
         <div>
           {categoryName && (
             <span className="text-[10px] font-bold tracking-widest text-gold-600 uppercase block">
@@ -133,13 +133,13 @@ export function ProductCard({
             </span>
           )}
           <Link href={`/products/${slug}`}>
-            <h3 className="font-serif text-xs font-semibold text-wine-900 line-clamp-1 hover:text-gold-600 transition-colors mt-0.5">
+            <h3 className="font-serif text-[11px] sm:text-xs font-semibold text-wine-900 line-clamp-2 sm:line-clamp-1 hover:text-gold-600 transition-colors mt-0.5 min-h-8 sm:min-h-0">
               {name}
             </h3>
           </Link>
 
           {/* Rating */}
-          <div className="flex items-center gap-1 mt-1 text-[11px] text-amber-600">
+          <div className="hidden sm:flex items-center gap-1 mt-1 text-[11px] text-amber-600">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className={`w-3 h-3 ${i < Math.floor(avgRating) ? "fill-amber-500 text-amber-500" : "text-stone-300"}`} />
@@ -163,7 +163,7 @@ export function ProductCard({
           <button
             onClick={handleAddToCart}
             disabled={isAdding}
-            className={`p-2 rounded-full transition-all shadow-sm ${
+            className={`shrink-0 p-1.5 sm:p-2 rounded-full transition-all shadow-sm ${
               addedSuccess
                 ? "bg-emerald-600 text-white"
                 : "wine-gradient-bg text-gold-300 hover:brightness-110 gold-border"

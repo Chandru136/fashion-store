@@ -8,7 +8,7 @@ import { Check, Clock, Truck, PackageCheck, MapPin, Printer } from "lucide-react
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const p = await params;
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!sessionCookie?.value) redirect("/login");
 
   const userId = JSON.parse(sessionCookie.value).id;

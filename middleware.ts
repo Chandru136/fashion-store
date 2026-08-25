@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isAuthCookie = request.cookies.get("aarna_session_user");
+  const isAuthCookie = request.cookies.get("sudha_collections_session_user");
 
   // Admin route protection
   if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {

@@ -83,7 +83,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                         <img src={p.images[0]?.url || "/images/placeholder.jpg"} alt={p.name} className="w-10 h-12 object-cover rounded bg-stone-100 flex-shrink-0" />
                         <div>
                           <p className="font-bold text-wine-900 line-clamp-1">{p.name}</p>
-                          <p className="text-[10px] text-gold-600 font-semibold">{p.brand?.name || "Aarna Heritage"}</p>
+                          <p className="text-[10px] text-gold-600 font-semibold">{p.brand?.name || "Sudha Collections"}</p>
                         </div>
                       </div>
                     </td>

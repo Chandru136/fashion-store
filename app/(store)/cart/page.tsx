@@ -7,7 +7,7 @@ import { CartPageClient } from "./CartPageClient";
 
 export default async function CartPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   let userId: string | undefined;
 
   if (sessionCookie?.value) {
@@ -16,7 +16,7 @@ export default async function CartPage() {
     } catch (e) {}
   }
 
-  const sessionId = cookieStore.get("aarna_cart_session")?.value;
+  const sessionId = cookieStore.get("sudha_collections_cart_session")?.value;
   const cartData = await getOrCreateCart(userId, sessionId);
 
   return (

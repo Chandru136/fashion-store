@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 
 async function getSessionIdentifiers() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   let userId: string | undefined;
 
   if (sessionCookie?.value) {
@@ -17,10 +17,10 @@ async function getSessionIdentifiers() {
     } catch (e) {}
   }
 
-  let sessionId = cookieStore.get("aarna_cart_session")?.value;
+  let sessionId = cookieStore.get("sudha_collections_cart_session")?.value;
   if (!sessionId) {
     sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    cookieStore.set("aarna_cart_session", sessionId, { maxAge: 60 * 60 * 24 * 30, path: "/" });
+    cookieStore.set("sudha_collections_cart_session", sessionId, { maxAge: 60 * 60 * 24 * 30, path: "/" });
   }
 
   return { userId, sessionId };
