@@ -60,6 +60,13 @@ export async function getHomepageData() {
       const totalRating = p.reviews.reduce((sum: number, r: any) => sum + r.rating, 0);
       const avgRating = p.reviews.length > 0 ? (totalRating / p.reviews.length).toFixed(1) : "5.0";
       const discountPercent = p.mrp > p.sellingPrice ? Math.round(((p.mrp - p.sellingPrice) / p.mrp) * 100) : 0;
+      const colors = Array.from(
+        new Set(
+          (p.variants || [])
+            .map((variant: { color?: string | null }) => variant.color)
+            .filter((color: string | null | undefined): color is string => typeof color === "string" && color.length > 0)
+        )
+      ) as string[];
 
       return {
         id: p.id,
@@ -77,7 +84,7 @@ export async function getHomepageData() {
         bestseller: p.bestseller,
         newArrival: p.newArrival,
         variantId: p.variants[0]?.id,
-        colors: [...new Set(p.variants.map((variant: { color: string | null }) => variant.color).filter((color): color is string => Boolean(color)))],
+        colors,
       };
     });
 

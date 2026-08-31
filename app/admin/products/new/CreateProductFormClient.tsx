@@ -14,6 +14,7 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
   const [brandId, setBrandId] = useState(brands[0]?.id || "");
   const [mrp, setMrp] = useState(15000);
   const [sellingPrice, setSellingPrice] = useState(10999);
+  const [tax, setTax] = useState(5);
   const [fabric, setFabric] = useState("Pure Mulberry Silk");
   const [occasion, setOccasion] = useState("Wedding");
   const [pattern, setPattern] = useState("Traditional Zari Border");
@@ -46,6 +47,7 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
       brandId,
       mrp: Number(mrp),
       sellingPrice: Number(sellingPrice),
+      tax: Number(tax),
       fabric,
       occasion,
       pattern,
