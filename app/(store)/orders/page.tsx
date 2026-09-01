@@ -4,13 +4,17 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Package, ChevronRight, Clock, Truck, CheckCircle } from "lucide-react";
+import { verifySessionToken } from "@/lib/auth";
 
 export default async function OrdersPage() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/orders");
 
-  const userId = JSON.parse(sessionCookie.value).id;
+  const user = await verifySessionToken(sessionCookie.value);
+  if (!user) redirect("/login?callbackUrl=/orders");
+
+  const userId = user.id;
   const orders = await getUserOrders(userId);
 
   return (

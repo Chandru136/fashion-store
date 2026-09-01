@@ -3,13 +3,14 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { User, Package, MapPin, Heart, ShieldCheck, LogOut } from "lucide-react";
+import { verifySessionToken } from "@/lib/auth";
 
 export default async function ProfilePage() {
+
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get("aarna_session_user");
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/profile");
 
-  const user = JSON.parse(sessionCookie.value);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">

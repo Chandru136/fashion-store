@@ -4,10 +4,11 @@ import { addItemToCart, updateCartItemQty, removeCartItem, getOrCreateCart } fro
 import { validateCoupon } from "@/lib/services/coupon.service";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { verifySessionToken } from "@/lib/auth";
 
 async function getSessionIdentifiers() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get("aarna_session_user");
   let userId: string | undefined;
 
   if (sessionCookie?.value) {
@@ -70,4 +71,9 @@ export async function applyCouponAction(code: string, subtotal: number) {
   } catch (error: any) {
     return { success: false, error: error.message || "Invalid coupon code" };
   }
+}
+
+export async function getCartAction() {
+  const { userId, sessionId } = await getSessionIdentifiers();
+  return getOrCreateCart(userId, sessionId);
 }

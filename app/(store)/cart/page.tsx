@@ -4,10 +4,11 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { ShoppingBag, ArrowRight, ShieldCheck, Truck, RefreshCw } from "lucide-react";
 import { CartPageClient } from "./CartPageClient";
+import { verifySessionToken } from "@/lib/auth";
 
 export default async function CartPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get("aarna_session_user");
   let userId: string | undefined;
 
   if (sessionCookie?.value) {

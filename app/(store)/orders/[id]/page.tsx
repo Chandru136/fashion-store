@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Check, Clock, Truck, PackageCheck, MapPin, Printer } from "lucide-react";
+import { verifySessionToken } from "@/lib/auth";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const p = await params;
@@ -11,7 +12,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
   const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!sessionCookie?.value) redirect("/login");
 
-  const userId = JSON.parse(sessionCookie.value).id;
+  const user = await verifySessionToken(sessionCookie.value);
+  if (!user) redirect("/login");
+
+  const userId = user.id;
   const order = await getOrderById(p.id, userId);
 
   if (!order) notFound();

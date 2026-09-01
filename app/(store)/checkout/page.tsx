@@ -3,10 +3,11 @@ import { getOrCreateCart } from "@/lib/services/cart.service";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CheckoutFormClient } from "./CheckoutFormClient";
+import { verifySessionToken } from "@/lib/auth";
 
 export default async function CheckoutPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get("aarna_session_user");
   let user = null;
 
   if (sessionCookie?.value) {

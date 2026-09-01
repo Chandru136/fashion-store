@@ -3,10 +3,11 @@
 import { prisma } from "@/lib/db";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { verifySessionToken } from "@/lib/auth";
 
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get("aarna_session_user");
   if (!sessionCookie?.value) return null;
   try {
     const userObj = JSON.parse(sessionCookie.value);

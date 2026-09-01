@@ -509,6 +509,82 @@ async function main() {
     });
   }
 
+  // 10. Seeding Banners & Collections
+  console.log("🎬 Seeding Banners & Collections...");
+  await prisma.banner.deleteMany({});
+  await prisma.banner.createMany({
+    data: [
+      {
+        title: "Samudrika Pattu",
+        subtitle: "The Sarvanga Sundari Saree — Crafted for the Royal Bride",
+        desktopImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600",
+        mobileImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800",
+        buttonText: "Shop Samudrika",
+        buttonUrl: "/category/kanchipuram-bridal-silk",
+        status: "ACTIVE",
+        displayOrder: 1,
+      },
+      {
+        title: "Vasundhara Pattu",
+        subtitle: "Elegance woven in pure mulberry silk & authentic gold zari accents",
+        desktopImage: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=1600",
+        mobileImage: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=800",
+        buttonText: "Shop Vasundhara",
+        buttonUrl: "/category/soft-silk-heritage",
+        status: "ACTIVE",
+        displayOrder: 2,
+      },
+      {
+        title: "Pillars of Pothys",
+        subtitle: "Traditional grand designs for weddings and life's golden occasions",
+        desktopImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1600",
+        mobileImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800",
+        buttonText: "Explore Pillars",
+        buttonUrl: "/category/banarasi-brocade-silk",
+        status: "ACTIVE",
+        displayOrder: 3,
+      },
+    ],
+  });
+
+  await prisma.collection.deleteMany({});
+  await prisma.collection.createMany({
+    data: [
+      {
+        name: "Samudrika Pattu",
+        slug: "samudrika-pattu",
+        description: "Flagship royal bridal weaves",
+        image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600",
+        status: "ACTIVE",
+        displayOrder: 1,
+      },
+      {
+        name: "Vasundhara Pattu",
+        slug: "vasundhara-pattu",
+        description: "Luminous designer gold zari borders",
+        image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=600",
+        status: "ACTIVE",
+        displayOrder: 2,
+      },
+      {
+        name: "Parampara Pattu",
+        slug: "parampara-pattu",
+        description: "Traditional temple motifs & legacy drapes",
+        image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600",
+        status: "ACTIVE",
+        displayOrder: 3,
+      },
+      {
+        name: "Budget Silk",
+        slug: "budget-silk",
+        description: "Opulent wedding styles at accessible prices",
+        image: "https://images.unsplash.com/photo-1594465919760-441fe5908ab0?w=600",
+        status: "ACTIVE",
+        displayOrder: 4,
+      },
+    ],
+  });
+
   console.log("✅ Database seeding completed successfully!");
   console.log("----------------------------------------------");
   console.log("🔑 Demo Admin: admin@example.com / Admin@12345");

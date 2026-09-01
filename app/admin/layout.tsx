@@ -2,14 +2,14 @@ import React from "react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { verifySessionToken } from "@/lib/auth";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const headerList = await headers();
   const pathname = headerList.get("x-invoke-path") || "";
 
-  // If on login route, render standalone container
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get("aarna_session_user");
   let user = null;
 
   if (sessionCookie?.value) {
