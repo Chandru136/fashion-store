@@ -48,11 +48,16 @@ model User {
   name         String
   email        String        @unique
   phone        String?
-  passwordHash String
+  passwordHash String?
+  authProvider String        @default("LOCAL") // "LOCAL" | "GOOGLE"
+  googleId     String?       @unique
   role         RoleEnum      @default(CUSTOMER)
   status       String        @default("ACTIVE") // ACTIVE | INACTIVE | BLOCKED
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
 
   addresses    Address[]
   orders       Order[]

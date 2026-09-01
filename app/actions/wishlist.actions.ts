@@ -3,17 +3,13 @@
 import { prisma } from "@/lib/db";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { verifySessionToken } from "@/lib/auth";
 
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
-  if (!sessionCookie?.value) return null;
-  try {
-    const userObj = JSON.parse(sessionCookie.value);
-    return userObj.id;
-  } catch (e) {
-    return null;
-  }
+  const token = cookieStore.get("aarna_session_user")?.value;
+  const session = await verifySessionToken(token);
+  return session?.id ?? null;
 }
 
 export async function toggleWishlistAction(productId: string) {

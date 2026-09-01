@@ -3,17 +3,12 @@ import { getOrCreateCart } from "@/lib/services/cart.service";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CheckoutFormClient } from "./CheckoutFormClient";
+import { verifySessionToken } from "@/lib/auth";
 
 export default async function CheckoutPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
-  let user = null;
-
-  if (sessionCookie?.value) {
-    try {
-      user = JSON.parse(sessionCookie.value);
-    } catch (e) {}
-  }
+  const token = cookieStore.get("aarna_session_user")?.value;
+  const user = await verifySessionToken(token);
 
   if (!user) {
     redirect("/login?callbackUrl=/checkout");

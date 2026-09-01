@@ -31,6 +31,13 @@
   --font-serif: 'Playfair Display', 'Cinzel', Georgia, serif;
   --font-display: 'Cinzel', 'Playfair Display', serif;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Pothys Brand Colors */
+  --pothys-red: #e31b23;
+  --pothys-red-hover: #c8102e;
+  --pothys-maroon: #800000;
+  --pothys-green: #008a45;
+  --pothys-beige: #f4ede1;
 }
 
 @theme inline {
@@ -58,6 +65,13 @@
 
   --color-obsidian: var(--obsidian);
   --color-charcoal: var(--charcoal);
+
+  /* Pothys Theme Bindings */
+  --color-pothys-red: var(--pothys-red);
+  --color-pothys-red-hover: var(--pothys-red-hover);
+  --color-pothys-maroon: var(--pothys-maroon);
+  --color-pothys-green: var(--pothys-green);
+  --color-pothys-beige: var(--pothys-beige);
 
   --font-serif: var(--font-serif);
   --font-display: var(--font-display);

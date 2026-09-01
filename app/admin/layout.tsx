@@ -2,21 +2,19 @@ import React from "react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { verifySessionToken } from "@/lib/auth";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const headerList = await headers();
   const pathname = headerList.get("x-invoke-path") || "";
 
-  // If on login route, render standalone container
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
-  let user = null;
+  const token = cookieStore.get("aarna_session_user")?.value;
 
-  if (sessionCookie?.value) {
-    try {
-      user = JSON.parse(sessionCookie.value);
-    } catch (e) {}
-  }
+  // Verified from the JWT signature, not just decoded — a tampered cookie
+  // (e.g. hand-edited role field) fails verification and resolves to null
+  // here rather than being trusted.
+  const user = await verifySessionToken(token);
 
   // Bypass layout sidebar for login page
   if (!user || user.role === "CUSTOMER") {
