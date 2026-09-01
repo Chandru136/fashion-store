@@ -4,7 +4,8 @@ import { verifySessionTokenEdge } from "@/lib/session-edge";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isAuthCookie = request.cookies.get("aarna_session_user");
+  const token = request.cookies.get("aarna_session_user")?.value;
+  const session = await verifySessionTokenEdge(token);
 
   // Admin route protection — role comes from the *verified* JWT payload,
   // not just "cookie exists", so a tampered/forged cookie is rejected here.
