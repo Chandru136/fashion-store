@@ -1,31 +1,10 @@
 import React from "react";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { verifySessionToken } from "@/lib/auth";
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const headerList = await headers();
-  const pathname = headerList.get("x-invoke-path") || "";
-
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
-  let user = null;
-
-  if (sessionCookie?.value) {
-    try {
-      user = JSON.parse(sessionCookie.value);
-    } catch (e) {}
-  }
-
-  // Bypass layout sidebar for login page
-  if (!user || user.role === "CUSTOMER") {
-    return <div className="min-h-screen bg-stone-100 font-sans">{children}</div>;
-  }
-
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex bg-stone-100 font-sans">
-      <AdminSidebar user={user} />
+      <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-y-auto">
         <header className="bg-white border-b border-stone-200 px-8 py-4 flex items-center justify-between shadow-sm sticky top-0 z-30">
           <div className="flex items-center gap-2">
@@ -34,9 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               Sudha Collections Administration Systems
             </span>
           </div>
-          <div className="text-xs text-stone-500 font-mono">
-            Session: <strong className="text-wine-900">{user.email}</strong> [{user.role}]
-          </div>
+          <div className="text-xs text-stone-500 font-mono"><strong className="text-wine-900">Administration Portal</strong></div>
         </header>
 
         <main className="p-8 flex-1">{children}</main>

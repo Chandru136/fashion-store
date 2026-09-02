@@ -17,12 +17,9 @@ import {
   Star,
   FileText,
   Sliders,
-  LogOut,
-  Sparkles,
 } from "lucide-react";
-import { logoutUser } from "@/app/actions/auth.actions";
 
-export function AdminSidebar({ user }: { user: any }) {
+export function AdminSidebar() {
   const pathname = usePathname();
 
   const navItems = [
@@ -86,8 +83,8 @@ export function AdminSidebar({ user }: { user: any }) {
       {/* Admin User Info & Logout */}
       <div className="pt-4 border-t border-wine-700/60 text-xs space-y-3">
         <div className="px-2">
-          <p className="font-bold text-gold-300">{user?.name}</p>
-          <p className="text-[10px] text-ivory-300 font-mono">{user?.role}</p>
+          <p className="font-bold text-gold-300">Admin</p>
+          <p className="text-[10px] text-ivory-300 font-mono">ADMINISTRATION</p>
         </div>
         <Link
           href="/"
@@ -95,15 +92,6 @@ export function AdminSidebar({ user }: { user: any }) {
         >
           View Customer Storefront ↗
         </Link>
-        <button
-          onClick={async () => {
-            await logoutUser();
-            window.location.href = "/admin/login";
-          }}
-          className="w-full py-2 px-3 bg-red-900/40 text-red-200 hover:bg-red-900/70 rounded font-semibold flex items-center justify-center gap-1.5"
-        >
-          <LogOut className="w-3.5 h-3.5" /> Sign Out Portal
-        </button>
       </div>
     </aside>
   );

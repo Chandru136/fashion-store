@@ -9,14 +9,6 @@ export async function middleware(request: NextRequest) {
 
   // Admin route protection — role comes from the *verified* JWT payload,
   // not just "cookie exists", so a tampered/forged cookie is rejected here.
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
-    if (!session || session.role === "CUSTOMER") {
-      const loginUrl = new URL("/admin/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
-
   // Account route protection
   if (
     (pathname.startsWith("/profile") || pathname.startsWith("/orders") || pathname.startsWith("/addresses")) &&
@@ -31,5 +23,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/profile/:path*", "/orders/:path*", "/addresses/:path*"],
+  matcher: ["/profile/:path*", "/orders/:path*", "/addresses/:path*"],
 };
