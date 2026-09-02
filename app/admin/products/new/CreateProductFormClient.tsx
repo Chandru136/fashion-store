@@ -3,15 +3,21 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createProductAction } from "@/app/actions/admin.actions";
-import { Plus, ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
-export function CreateProductFormClient({ categories, brands }: { categories: any[]; brands: any[] }) {
+type CategoryOption = { id: string; name: string; parentId: string | null };
+type BrandOption = { id: string; name: string };
+const NEW_CATEGORY_VALUE = "__new_category__";
+
+export function CreateProductFormClient({ categories, brands }: { categories: CategoryOption[]; brands: BrandOption[] }) {
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [sku, setSku] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState(categories[0]?.id || "");
-  const [brandId, setBrandId] = useState(brands[0]?.id || "");
+  const [shortDescription, setShortDescription] = useState("");
+  const [categoryId, setCategoryId] = useState(categories[0]?.id || NEW_CATEGORY_VALUE);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [brandId, setBrandId] = useState("");
   const [mrp, setMrp] = useState(15000);
   const [sellingPrice, setSellingPrice] = useState(10999);
   const [tax, setTax] = useState(5);
@@ -20,7 +26,13 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
   const [pattern, setPattern] = useState("Traditional Zari Border");
   const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800");
   const [color, setColor] = useState("Royal Red");
+  const [size, setSize] = useState("Free Size");
+  const [variantSku, setVariantSku] = useState("");
   const [stock, setStock] = useState(25);
+  const [status, setStatus] = useState<"DRAFT" | "ACTIVE">("ACTIVE");
+  const [featured, setFeatured] = useState(false);
+  const [bestseller, setBestseller] = useState(false);
+  const [newArrival, setNewArrival] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -30,7 +42,11 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
     setName(val);
     const autoSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     setSlug(autoSlug);
-    setSku(`ARN-${Math.floor(1000 + Math.random() * 9000)}`);
+    if (!sku) {
+      const generatedSku = `ARN-${Math.floor(1000 + Math.random() * 9000)}`;
+      setSku(generatedSku);
+      setVariantSku(`${generatedSku}-VAR`);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,37 +59,36 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
       slug,
       sku,
       description,
-      categoryId,
-      brandId,
+      shortDescription: shortDescription || undefined,
+      categoryId: categoryId === NEW_CATEGORY_VALUE ? "" : categoryId,
+      brandId: brandId || undefined,
       mrp: Number(mrp),
       sellingPrice: Number(sellingPrice),
       tax: Number(tax),
       fabric,
       occasion,
       pattern,
-      status: "ACTIVE",
-      featured: true,
-      bestseller: true,
-      newArrival: true,
+      status, featured, bestseller, newArrival,
       images: [
         { url: imageUrl, altText: name, isPrimary: true, sortOrder: 1 },
       ],
       variants: [
         {
-          sku: `${sku}-VAR`,
+          sku: variantSku,
           color,
-          size: "Free Size",
+          size,
           fabric,
           price: Number(sellingPrice),
           stock: Number(stock),
         },
       ],
-    });
+    }, categoryId === NEW_CATEGORY_VALUE ? newCategoryName : undefined);
 
     setIsSubmitting(false);
 
     if (res.success) {
       router.push("/admin/products");
+      router.refresh();
     } else {
       setErrorMsg(res.error || "Failed to create product");
     }
@@ -118,15 +133,17 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
         <div>
           <label className="font-bold text-stone-700 block mb-1">Category</label>
           <select
+            required
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
             className="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:border-gold-500"
           >
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.parentId ? `— ${c.name}` : c.name}</option>)}
+            <option value={NEW_CATEGORY_VALUE}>+ Create a new category</option>
           </select>
+          {categoryId === NEW_CATEGORY_VALUE && <input type="text" required minLength={2} maxLength={80} value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} placeholder="New category name" className="mt-2 w-full px-3 py-2 border border-stone-300 rounded" />}
         </div>
+        <div><label className="font-bold text-stone-700 block mb-1">Brand</label><select value={brandId} onChange={(e)=>setBrandId(e.target.value)} className="w-full px-3 py-2 border border-stone-300 rounded"><option value="">No brand / Store brand</option>{brands.map((b)=><option key={b.id} value={b.id}>{b.name}</option>)}</select></div>
         <div>
           <label className="font-bold text-stone-700 block mb-1">MRP (₹)</label>
           <input
@@ -156,6 +173,7 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
             className="w-full px-3 py-2 border border-stone-300 rounded"
           />
         </div>
+        <div><label className="font-bold text-stone-700 block mb-1">Tax (%)</label><input type="number" required min={0} max={100} step="0.01" value={tax} onChange={(e)=>setTax(Number(e.target.value))} className="w-full px-3 py-2 border border-stone-300 rounded" /></div>
         <div>
           <label className="font-bold text-stone-700 block mb-1">Initial Stock Count</label>
           <input
@@ -164,6 +182,15 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
             onChange={(e) => setStock(Number(e.target.value))}
             className="w-full px-3 py-2 border border-stone-300 rounded"
           />
+        </div>
+        <div><label className="font-bold text-stone-700 block mb-1">Variant SKU</label><input required value={variantSku} onChange={(e)=>setVariantSku(e.target.value)} className="w-full px-3 py-2 border border-stone-300 rounded font-mono" /></div>
+        <div><label className="font-bold text-stone-700 block mb-1">Color</label><input value={color} onChange={(e)=>setColor(e.target.value)} className="w-full px-3 py-2 border border-stone-300 rounded" /></div>
+        <div><label className="font-bold text-stone-700 block mb-1">Size</label><input value={size} onChange={(e)=>setSize(e.target.value)} className="w-full px-3 py-2 border border-stone-300 rounded" /></div>
+        <div><label className="font-bold text-stone-700 block mb-1">Occasion</label><input value={occasion} onChange={(e)=>setOccasion(e.target.value)} className="w-full px-3 py-2 border border-stone-300 rounded" /></div>
+        <div><label className="font-bold text-stone-700 block mb-1">Pattern</label><input value={pattern} onChange={(e)=>setPattern(e.target.value)} className="w-full px-3 py-2 border border-stone-300 rounded" /></div>
+        <div><label className="font-bold text-stone-700 block mb-1">Publishing Status</label><select value={status} onChange={(e)=>setStatus(e.target.value as "DRAFT"|"ACTIVE")} className="w-full px-3 py-2 border border-stone-300 rounded"><option value="ACTIVE">Active — visible in storefront</option><option value="DRAFT">Draft — hidden from storefront</option></select></div>
+        <div className="sm:col-span-2">
+          <label className="font-bold text-stone-700 block mb-1">Short Description</label><input value={shortDescription} onChange={(e)=>setShortDescription(e.target.value)} maxLength={250} className="w-full px-3 py-2 border border-stone-300 rounded" />
         </div>
         <div className="sm:col-span-2">
           <label className="font-bold text-stone-700 block mb-1">Image URL</label>
@@ -187,6 +214,8 @@ export function CreateProductFormClient({ categories, brands }: { categories: an
           />
         </div>
       </div>
+
+      <fieldset className="rounded-lg border border-stone-200 p-4"><legend className="px-2 font-bold text-wine-900">Storefront Placement</legend><div className="flex flex-wrap gap-6"><label className="flex items-center gap-2 font-semibold"><input type="checkbox" checked={featured} onChange={(e)=>setFeatured(e.target.checked)} /> Featured product</label><label className="flex items-center gap-2 font-semibold"><input type="checkbox" checked={bestseller} onChange={(e)=>setBestseller(e.target.checked)} /> Bestseller</label><label className="flex items-center gap-2 font-semibold"><input type="checkbox" checked={newArrival} onChange={(e)=>setNewArrival(e.target.checked)} /> New arrival</label></div></fieldset>
 
       <button
         type="submit"

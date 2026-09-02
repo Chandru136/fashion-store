@@ -4,11 +4,15 @@ import { CreateProductFormClient } from "./CreateProductFormClient";
 
 export default async function CreateProductPage() {
   const categories = await prisma.category.findMany({
-    select: { id: true, name: true },
+    where: { status: "ACTIVE" },
+    select: { id: true, name: true, parentId: true },
+    orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
   });
 
   const brands = await prisma.brand.findMany({
+    where: { status: "ACTIVE" },
     select: { id: true, name: true },
+    orderBy: { name: "asc" },
   });
 
   return (

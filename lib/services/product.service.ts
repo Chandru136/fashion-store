@@ -122,8 +122,8 @@ export async function getProducts(params: ProductFilterParams = {}) {
 }
 
 export async function getProductBySlug(slug: string) {
-  const product = await prisma.product.findUnique({
-    where: { slug },
+  const product = await prisma.product.findFirst({
+    where: { slug, status: "ACTIVE" },
     include: {
       category: { select: { id: true, name: true, slug: true } },
       brand: { select: { id: true, name: true, slug: true } },

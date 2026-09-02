@@ -145,7 +145,7 @@ model Product {
   fabric           String?
   occasion         String?
   pattern          String?
-  status           String   @default("ACTIVE") // DRAFT | ACTIVE | ARCHIVED
+  status           String   @default("ACTIVE") // DRAFT | ACTIVE | ARCHIVED | INACTIVE
   featured         Boolean  @default(false)
   bestseller       Boolean  @default(false)
   newArrival       Boolean  @default(true)

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Edit2, Check } from "lucide-react";
+import { updateStockAction } from "@/app/actions/admin.actions";
 
 export function StockUpdateModalClient({ variantId, currentStock }: { variantId: string; currentStock: number }) {
   const [stock, setStock] = useState(currentStock);
@@ -12,11 +13,7 @@ export function StockUpdateModalClient({ variantId, currentStock }: { variantId:
 
   const handleSave = async () => {
     setIsLoading(true);
-    await fetch("/api/admin/inventory", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ variantId, stock: Number(stock) }),
-    });
+    await updateStockAction(variantId, Number(stock));
     setIsLoading(false);
     setIsEditing(false);
     router.refresh();

@@ -1,7 +1,8 @@
 import React from "react";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { Plus, Search, Filter, Edit, Trash2, Package } from "lucide-react";
+import { Plus, Search } from "lucide-react";
+import { AdminProductActionsClient } from "./AdminProductActionsClient";
 
 export default async function AdminProductsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const sp = await searchParams;
@@ -22,6 +23,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       brand: { select: { name: true } },
       variants: { select: { stock: true } },
       images: { orderBy: { sortOrder: "asc" }, take: 1 },
+      orderItems: { select: { quantity: true } },
     },
     orderBy: { createdAt: "desc" },
     take: 50,
@@ -68,6 +70,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                 <th className="p-3">Category</th>
                 <th className="p-3">MRP / Price</th>
                 <th className="p-3">Total Stock</th>
+                <th className="p-3">Sales</th>
                 <th className="p-3">Status</th>
                 <th className="p-3 text-right">Actions</th>
               </tr>
@@ -75,6 +78,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
             <tbody className="divide-y divide-stone-100 font-medium">
               {products.map((p) => {
                 const totalStock = p.variants.reduce((sum, v) => sum + v.stock, 0);
+                const totalSold = p.orderItems.reduce((sum, item) => sum + item.quantity, 0);
 
                 return (
                   <tr key={p.id} className="hover:bg-ivory-50 transition-colors">
@@ -100,15 +104,14 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
                         {totalStock} units
                       </span>
                     </td>
+                    <td className="p-3 font-bold text-wine-900">{totalSold} units</td>
                     <td className="p-3">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-wine-800 text-gold-300">
                         {p.status}
                       </span>
                     </td>
                     <td className="p-3 text-right">
-                      <Link href={`/products/${p.slug}`} className="text-wine-800 font-bold hover:underline">
-                        Preview ↗
-                      </Link>
+                      <AdminProductActionsClient id={p.id} slug={p.slug} status={p.status} />
                     </td>
                   </tr>
                 );
