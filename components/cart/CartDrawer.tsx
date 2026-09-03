@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,23 +46,41 @@ export function CartDrawer({
   onApplyCoupon,
 }: CartDrawerProps) {
   const [couponCode, setCouponCode] = useState("");
+  const [mounted, setMounted] = useState(false);
   const freeShippingThreshold = 2000;
   const progressPercent = Math.min(100, (subtotal / freeShippingThreshold) * 100);
+  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
 
-  if (!isOpen) return null;
+  useEffect(() => setMounted(true), []);
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!mounted || !isOpen) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] overflow-hidden" role="dialog" aria-modal="true" aria-label="Shopping bag">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="absolute inset-0 bg-stone-900/25 transition-opacity" onClick={onClose} aria-hidden="true" />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+      <div className="absolute inset-y-0 right-0 flex max-w-full pl-4 sm:pl-10">
+        <div className="flex h-dvh w-screen max-w-lg flex-col bg-white shadow-2xl">
           {/* Header */}
           <div className="wine-gradient-bg text-ivory-50 p-4 flex items-center justify-between gold-border border-b">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-gold-400" />
-              <h2 className="font-serif text-lg font-semibold text-gold-300">Your Shopping Bag ({items.length})</h2>
+              <h2 className="font-serif text-lg font-semibold text-gold-300">Your Shopping Bag ({itemCount})</h2>
             </div>
             <button onClick={onClose} className="p-1 text-ivory-200 hover:text-gold-300">
               <X className="w-6 h-6" />
@@ -87,7 +106,7 @@ export function CartDrawer({
           </div>
 
           {/* Cart Item List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
             {items.length === 0 ? (
               <div className="text-center py-16 text-muted-text space-y-4">
                 <ShoppingBag className="w-16 h-16 mx-auto text-gold-500/40 stroke-1" />
@@ -99,14 +118,14 @@ export function CartDrawer({
               </div>
             ) : (
               items.map((item) => (
-                <div key={item.id} className="flex gap-3 p-3 bg-ivory-50 border border-ivory-300 rounded-lg relative hover:border-gold-500/50 transition-colors">
-                  <div className="w-20 h-24 relative rounded overflow-hidden flex-shrink-0 bg-stone-100">
+                <div key={item.id} className="flex gap-4 p-4 bg-ivory-50 border border-ivory-300 rounded-lg relative hover:border-gold-500/50 transition-colors">
+                  <div className="h-32 w-24 relative rounded overflow-hidden flex-shrink-0 bg-stone-100 sm:h-36 sm:w-28">
                     <img src={item.image} alt={item.productName} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
-                      <h4 className="text-xs font-semibold text-wine-900 line-clamp-1">{item.productName}</h4>
-                      <p className="text-[11px] text-stone-500 mt-0.5">
+                      <Link href={`/products/${item.productSlug}`} onClick={onClose} className="text-sm font-semibold text-wine-900 line-clamp-2 hover:text-gold-600">{item.productName}</Link>
+                      <p className="text-xs text-stone-500 mt-1">
                         {item.color && <span>Color: {item.color}</span>} {item.size && <span className="ml-2">Size: {item.size}</span>}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
@@ -183,6 +202,7 @@ export function CartDrawer({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

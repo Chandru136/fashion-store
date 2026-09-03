@@ -14,6 +14,8 @@ export function ProductDetailClient({ product }: { product: any }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [actionError, setActionError] = useState<string | null>(null);
   const router = useRouter();
 
   const currentVariant = product.variants[selectedVariantIndex] || product.variants[0];
@@ -32,17 +34,21 @@ export function ProductDetailClient({ product }: { product: any }) {
   const handleAddToCart = async () => {
     if (!currentVariant) return;
     setIsAdding(true);
-    const res = await addToCartAction(currentVariant.id, 1);
+    setActionError(null);
+    const res = await addToCartAction(currentVariant.id, quantity);
     setIsAdding(false);
     if (res.success) {
+      window.dispatchEvent(new CustomEvent("cart:updated", { detail: res.cart }));
       setAddSuccess(true);
       setTimeout(() => setAddSuccess(false), 2500);
+    } else {
+      setActionError(res.error || "Unable to add this item to your bag.");
     }
+    return res.success;
   };
 
   const handleBuyNow = async () => {
-    await handleAddToCart();
-    router.push("/checkout");
+    if (await handleAddToCart()) router.push("/checkout");
   };
 
   return (
@@ -155,6 +161,14 @@ export function ProductDetailClient({ product }: { product: any }) {
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between rounded border border-stone-200 bg-white p-3">
+            <span className="text-xs font-bold text-wine-900">Quantity</span>
+            <div className="flex items-center rounded border border-stone-300">
+              <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} className="px-3 py-1.5" aria-label="Decrease quantity">−</button>
+              <span className="min-w-8 text-center text-xs font-bold">{quantity}</span>
+              <button type="button" onClick={() => setQuantity((value) => Math.min(Math.min(availableStock, 99), value + 1))} className="px-3 py-1.5" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={handleAddToCart}
@@ -178,17 +192,20 @@ export function ProductDetailClient({ product }: { product: any }) {
 
             <button
               onClick={handleBuyNow}
-              disabled={availableStock === 0}
+              disabled={isAdding || availableStock === 0}
               className="py-3 px-4 gold-gradient-bg text-wine-900 font-bold text-xs uppercase tracking-wider rounded shadow-md hover:brightness-105 transition-all flex items-center justify-center gap-2"
             >
               Buy Now <ArrowRight className="w-4 h-4" />
             </button>
           </div>
 
+          {actionError && <p role="alert" className="rounded bg-red-50 p-2 text-xs font-semibold text-red-700">{actionError}</p>}
+
           <button
             onClick={async () => {
-              setIsWishlisted(!isWishlisted);
-              await toggleWishlistAction(product.id);
+              const res = await toggleWishlistAction(product.id);
+              if (res.success) setIsWishlisted(Boolean(res.isWishlisted));
+              else setActionError(res.error || "Unable to update your wishlist.");
             }}
             className="w-full py-2.5 bg-white border border-stone-300 text-wine-900 rounded font-semibold text-xs flex items-center justify-center gap-2 hover:border-gold-500 transition-colors"
           >

@@ -50,7 +50,7 @@ export async function getOrCreateCart(userId?: string, sessionId?: string) {
   let totalDiscount = 0;
 
   const items = cart.items.map((item) => {
-    const unitPrice = item.variant.price;
+    const unitPrice = item.variant.salePrice ?? item.variant.price;
     const itemTotal = unitPrice * item.quantity;
     subtotal += itemTotal;
 
@@ -77,7 +77,10 @@ export async function getOrCreateCart(userId?: string, sessionId?: string) {
     };
   });
 
-  const tax = Math.round(subtotal * 0.05); // 5% GST
+  const tax = Math.round(cart.items.reduce((sum, item) => {
+    const unitPrice = item.variant.salePrice ?? item.variant.price;
+    return sum + unitPrice * item.quantity * (item.variant.product.tax / 100);
+  }, 0));
   const shipping = subtotal > 2000 || items.length === 0 ? 0 : 150; // Free shipping over ₹2000
   const grandTotal = subtotal + tax + shipping;
 
@@ -96,10 +99,10 @@ export async function getOrCreateCart(userId?: string, sessionId?: string) {
 export async function addItemToCart(userId: string | undefined, sessionId: string | undefined, variantId: string, quantity: number = 1) {
   const variant = await prisma.productVariant.findUnique({
     where: { id: variantId },
-    include: { inventory: true },
+    include: { inventory: true, product: { select: { status: true } } },
   });
 
-  if (!variant) throw new Error("Product variant not found");
+  if (!variant || variant.product.status !== "ACTIVE") throw new Error("This product is not available");
 
   const stock = variant.inventory?.availableStock ?? variant.stock;
   if (stock < quantity) throw new Error("Requested quantity exceeds available stock");
@@ -113,11 +116,12 @@ export async function addItemToCart(userId: string | undefined, sessionId: strin
 
   if (existingItem) {
     const newQty = existingItem.quantity + quantity;
+    if (newQty > 99) throw new Error("Quantity cannot exceed 99");
     if (stock < newQty) throw new Error("Requested quantity exceeds available stock");
 
     await prisma.cartItem.update({
       where: { id: existingItem.id },
-      data: { quantity: newQty },
+      data: { quantity: { increment: quantity } },
     });
   } else {
     await prisma.cartItem.create({
@@ -132,16 +136,17 @@ export async function addItemToCart(userId: string | undefined, sessionId: strin
   return getOrCreateCart(userId, sessionId);
 }
 
-export async function updateCartItemQty(cartItemId: string, quantity: number) {
+export async function updateCartItemQty(userId: string | undefined, sessionId: string | undefined, cartItemId: string, quantity: number) {
+  const owner = userId ? { userId } : { sessionId };
+  const item = await prisma.cartItem.findFirst({
+    where: { id: cartItemId, cart: owner },
+    include: { variant: { include: { inventory: true } } },
+  });
+  if (!item) throw new Error("Cart item not found");
+
   if (quantity <= 0) {
     await prisma.cartItem.delete({ where: { id: cartItemId } });
   } else {
-    const item = await prisma.cartItem.findUnique({
-      where: { id: cartItemId },
-      include: { variant: { include: { inventory: true } } },
-    });
-
-    if (!item) throw new Error("Cart item not found");
     const stock = item.variant.inventory?.availableStock ?? item.variant.stock;
     if (stock < quantity) throw new Error("Requested quantity exceeds available stock");
 
@@ -152,6 +157,9 @@ export async function updateCartItemQty(cartItemId: string, quantity: number) {
   }
 }
 
-export async function removeCartItem(cartItemId: string) {
-  await prisma.cartItem.delete({ where: { id: cartItemId } });
+export async function removeCartItem(userId: string | undefined, sessionId: string | undefined, cartItemId: string) {
+  const result = await prisma.cartItem.deleteMany({
+    where: { id: cartItemId, cart: userId ? { userId } : { sessionId } },
+  });
+  if (result.count === 0) throw new Error("Cart item not found");
 }

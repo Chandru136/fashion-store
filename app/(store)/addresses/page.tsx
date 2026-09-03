@@ -1,7 +1,6 @@
 import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifySessionToken } from "@/lib/auth";
 import { getAddresses, deleteAddress, setDefaultAddress } from "@/app/actions/address.actions";
 import AddAddressForm from "./AddAddressForm";
 import { MapPin, Trash2, Star } from "lucide-react";
@@ -54,7 +53,10 @@ export default async function AddressesPage() {
 
             <div className="flex items-center gap-3 pt-2">
               {!addr.isDefault && (
-                <form action={setDefaultAddress.bind(null, addr.id)}>
+                <form action={async () => {
+                  "use server";
+                  await setDefaultAddress(addr.id);
+                }}>
                   <button
                     type="submit"
                     className="flex items-center gap-1 text-wine-900 font-bold hover:underline"
@@ -63,7 +65,10 @@ export default async function AddressesPage() {
                   </button>
                 </form>
               )}
-              <form action={deleteAddress.bind(null, addr.id)}>
+              <form action={async () => {
+                "use server";
+                await deleteAddress(addr.id);
+              }}>
                 <button
                   type="submit"
                   className="flex items-center gap-1 text-red-600 font-bold hover:underline"

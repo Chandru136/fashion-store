@@ -8,6 +8,7 @@ import { MegaMenu } from "./MegaMenu";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { logoutUser } from "@/app/actions/auth.actions";
+import { getCartAction, removeCartItemAction, updateCartQtyAction } from "@/app/actions/cart.actions";
 
 interface HeaderProps {
   cartItemCount?: number;
@@ -20,22 +21,29 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  const [cartData, setCartData] = useState<any>({ items: [], subtotal: 0, shipping: 0, tax: 0, grandTotal: 0 });
+  const [cartData, setCartData] = useState<any>({ items: [], itemCount: cartItemCount, subtotal: 0, shipping: 0, tax: 0, grandTotal: 0 });
   const router = useRouter();
 
   useEffect(() => {
     // Fetch live cart state from server route / action
     async function loadCart() {
       try {
-        const res = await fetch("/api/cart");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.cart) setCartData(data.cart);
-        }
+        const cart = await getCartAction();
+        if (cart) setCartData(cart);
       } catch (e) {}
     }
     loadCart();
-  }, [isCartOpen]);
+
+    const handleCartUpdated = (event: Event) => {
+      const cart = (event as CustomEvent).detail;
+      if (cart) {
+        setCartData(cart);
+        setIsCartOpen(true);
+      }
+    };
+    window.addEventListener("cart:updated", handleCartUpdated);
+    return () => window.removeEventListener("cart:updated", handleCartUpdated);
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,7 +176,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
             <ShoppingBag className="w-4 h-4 text-gold-400" />
             <span className="hidden sm:inline">Bag</span>
             <span className="w-5 h-5 bg-gold-400 text-wine-900 font-bold text-[10px] rounded-full flex items-center justify-center shadow">
-              {cartData.items?.length || cartItemCount}
+              {cartData.itemCount ?? cartItemCount}
             </span>
           </button>
         </div>
@@ -204,25 +212,12 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
         tax={cartData.tax || 0}
         grandTotal={cartData.grandTotal || 0}
         onUpdateQuantity={async (id, qty) => {
-          // Re-fetch cart
-          await fetch("/api/cart", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cartItemId: id, quantity: qty }),
-          });
-          const res = await fetch("/api/cart");
-          if (res.ok) {
-            const data = await res.json();
-            setCartData(data.cart);
-          }
+          const res = await updateCartQtyAction(id, qty);
+          if (res.success && res.cart) setCartData(res.cart);
         }}
         onRemoveItem={async (id) => {
-          await fetch(`/api/cart?id=${id}`, { method: "DELETE" });
-          const res = await fetch("/api/cart");
-          if (res.ok) {
-            const data = await res.json();
-            setCartData(data.cart);
-          }
+          const res = await removeCartItemAction(id);
+          if (res.success && res.cart) setCartData(res.cart);
         }}
       />
     </header>

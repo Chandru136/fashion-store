@@ -5,23 +5,19 @@ import { validateCoupon } from "@/lib/services/coupon.service";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { verifySessionToken } from "@/lib/auth";
+import { randomUUID } from "crypto";
+import { AddToCartSchema, UpdateCartItemSchema } from "@/lib/validations/cart";
 
 async function getSessionIdentifiers() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("aarna_session_user");
-  let userId: string | undefined;
-
-  if (sessionCookie?.value) {
-    try {
-      const userObj = JSON.parse(sessionCookie.value);
-      userId = userObj.id;
-    } catch (e) {}
-  }
+  const session = await verifySessionToken(sessionCookie?.value);
+  const userId = session?.id;
 
   let sessionId = cookieStore.get("sudha_collections_cart_session")?.value;
   if (!sessionId) {
-    sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    cookieStore.set("sudha_collections_cart_session", sessionId, { maxAge: 60 * 60 * 24 * 30, path: "/" });
+    sessionId = `sess_${randomUUID()}`;
+    cookieStore.set("sudha_collections_cart_session", sessionId, { maxAge: 60 * 60 * 24 * 30, path: "/", httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
   }
 
   return { userId, sessionId };
@@ -29,8 +25,9 @@ async function getSessionIdentifiers() {
 
 export async function addToCartAction(variantId: string, quantity: number = 1) {
   try {
+    const validated = AddToCartSchema.parse({ variantId, quantity });
     const { userId, sessionId } = await getSessionIdentifiers();
-    const cart = await addItemToCart(userId, sessionId, variantId, quantity);
+    const cart = await addItemToCart(userId, sessionId, validated.variantId, validated.quantity);
     revalidatePath("/cart");
     revalidatePath("/products/[slug]", "page");
     return { success: true, cart };
@@ -41,8 +38,9 @@ export async function addToCartAction(variantId: string, quantity: number = 1) {
 
 export async function updateCartQtyAction(cartItemId: string, quantity: number) {
   try {
-    await updateCartItemQty(cartItemId, quantity);
     const { userId, sessionId } = await getSessionIdentifiers();
+    const validated = UpdateCartItemSchema.parse({ cartItemId, quantity });
+    await updateCartItemQty(userId, sessionId, validated.cartItemId, validated.quantity);
     const cart = await getOrCreateCart(userId, sessionId);
     revalidatePath("/cart");
     return { success: true, cart };
@@ -53,8 +51,9 @@ export async function updateCartQtyAction(cartItemId: string, quantity: number) 
 
 export async function removeCartItemAction(cartItemId: string) {
   try {
-    await removeCartItem(cartItemId);
     const { userId, sessionId } = await getSessionIdentifiers();
+    if (!cartItemId || typeof cartItemId !== "string") throw new Error("Cart item ID is required");
+    await removeCartItem(userId, sessionId, cartItemId);
     const cart = await getOrCreateCart(userId, sessionId);
     revalidatePath("/cart");
     return { success: true, cart };

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { validateCoupon } from "@/lib/services/coupon.service";
+import { randomUUID } from "crypto";
 
 export interface CreateOrderParams {
   userId: string;
@@ -10,6 +11,12 @@ export interface CreateOrderParams {
   shippingCity: string;
   shippingState: string;
   shippingPincode: string;
+  billingName: string;
+  billingPhone: string;
+  billingAddress: string;
+  billingCity: string;
+  billingState: string;
+  billingPincode: string;
   paymentMethod: "COD" | "ONLINE";
   couponCode?: string;
 }
@@ -23,6 +30,12 @@ export async function createOrderFromCart(params: CreateOrderParams) {
     shippingCity,
     shippingState,
     shippingPincode,
+    billingName,
+    billingPhone,
+    billingAddress,
+    billingCity,
+    billingState,
+    billingPincode,
     paymentMethod,
     couponCode,
   } = params;
@@ -68,7 +81,8 @@ export async function createOrderFromCart(params: CreateOrderParams) {
       throw new Error(`Insufficient stock for ${variant.product.name} (${variant.color || ""} ${variant.size || ""}). Only ${availableStock} left.`);
     }
 
-    const unitPrice = variant.price;
+    if (variant.product.status !== "ACTIVE") throw new Error(`${variant.product.name} is no longer available.`);
+    const unitPrice = variant.salePrice ?? variant.price;
     const totalPrice = unitPrice * item.quantity;
     subtotal += totalPrice;
 
@@ -91,11 +105,15 @@ export async function createOrderFromCart(params: CreateOrderParams) {
   }
 
   // 4. Tax & Shipping computation
-  const tax = Math.round((subtotal - discount) * 0.05); // 5% GST
+  const undiscountedTax = cart.items.reduce((sum, item) => {
+    const price = item.variant.salePrice ?? item.variant.price;
+    return sum + price * item.quantity * (item.variant.product.tax / 100);
+  }, 0);
+  const tax = Math.round(undiscountedTax * (subtotal > 0 ? (subtotal - discount) / subtotal : 0));
   const shipping = subtotal > 2000 ? 0 : 150; // Free shipping above ₹2000
   const total = subtotal - discount + tax + shipping;
 
-  const orderNumber = `ARN-${Date.now().toString().slice(-6)}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const orderNumber = `ARN-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomUUID().slice(0, 8).toUpperCase()}`;
 
   // 5. Database Transaction for Order Creation & Stock Reservation
   const newOrder = await prisma.$transaction(async (tx) => {
@@ -106,19 +124,21 @@ export async function createOrderFromCart(params: CreateOrderParams) {
 
       const currentInventory = await tx.inventory.findUnique({ where: { variantId } });
       if (currentInventory) {
-        await tx.inventory.update({
-          where: { variantId },
+        const inventoryUpdate = await tx.inventory.updateMany({
+          where: { variantId, availableStock: { gte: qty } },
           data: {
             availableStock: { decrement: qty },
             reservedStock: { increment: qty },
           },
         });
+        if (inventoryUpdate.count !== 1) throw new Error("An item just went out of stock. Please review your bag.");
       }
 
-      await tx.productVariant.update({
-        where: { id: variantId },
+      const variantUpdate = await tx.productVariant.updateMany({
+        where: { id: variantId, stock: { gte: qty } },
         data: { stock: { decrement: qty } },
       });
+      if (variantUpdate.count !== 1) throw new Error("An item just went out of stock. Please review your bag.");
     }
 
     // Create Order Record
@@ -141,6 +161,12 @@ export async function createOrderFromCart(params: CreateOrderParams) {
         shippingCity,
         shippingState,
         shippingPincode,
+        billingName,
+        billingPhone,
+        billingAddress,
+        billingCity,
+        billingState,
+        billingPincode,
         items: {
           create: orderItemData,
         },

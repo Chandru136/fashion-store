@@ -9,7 +9,7 @@ import { verifySessionToken } from "@/lib/auth";
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const p = await params;
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get("aarna_session_user");
   if (!sessionCookie?.value) redirect("/login");
 
   const user = await verifySessionToken(sessionCookie.value);
@@ -98,6 +98,13 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <p className="font-bold text-stone-900">{order.shippingName}</p>
             <p className="text-stone-600 font-light mt-1">{order.shippingAddress}, {order.shippingCity}, {order.shippingState} - {order.shippingPincode}</p>
             <p className="text-stone-600 mt-1">Phone: {order.shippingPhone}</p>
+          </div>
+
+          <div className="pt-3 border-t border-ivory-300">
+            <h4 className="font-serif font-bold text-wine-900 text-xs uppercase tracking-wider mb-2">Billing Address</h4>
+            <p className="font-bold text-stone-900">{order.billingName || order.shippingName}</p>
+            <p className="text-stone-600 font-light mt-1">{order.billingAddress || order.shippingAddress}, {order.billingCity || order.shippingCity}, {order.billingState || order.shippingState} - {order.billingPincode || order.shippingPincode}</p>
+            <p className="text-stone-600 mt-1">Phone: {order.billingPhone || order.shippingPhone}</p>
           </div>
 
           <div className="pt-3 border-t border-ivory-300 space-y-1.5 text-stone-700">

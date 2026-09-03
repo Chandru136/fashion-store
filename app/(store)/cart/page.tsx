@@ -9,13 +9,7 @@ import { verifySessionToken } from "@/lib/auth";
 export default async function CartPage() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("aarna_session_user");
-  let userId: string | undefined;
-
-  if (sessionCookie?.value) {
-    try {
-      userId = JSON.parse(sessionCookie.value).id;
-    } catch (e) {}
-  }
+  const userId = (await verifySessionToken(sessionCookie?.value))?.id;
 
   const sessionId = cookieStore.get("sudha_collections_cart_session")?.value;
   const cartData = await getOrCreateCart(userId, sessionId);

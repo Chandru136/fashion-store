@@ -4,23 +4,21 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { CheckoutFormClient } from "./CheckoutFormClient";
 import { verifySessionToken } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
 export default async function CheckoutPage() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("aarna_session_user");
-  let user = null;
-
-  if (sessionCookie?.value) {
-    try {
-      user = JSON.parse(sessionCookie.value);
-    } catch (e) {}
-  }
+  const user = await verifySessionToken(sessionCookie?.value);
 
   if (!user) {
     redirect("/login?callbackUrl=/checkout");
   }
 
-  const cartData = await getOrCreateCart(user.id);
+  const [cartData, defaultAddress] = await Promise.all([
+    getOrCreateCart(user.id),
+    prisma.address.findFirst({ where: { userId: user.id }, orderBy: [{ isDefault: "desc" }, { id: "asc" }] }),
+  ]);
 
   if (!cartData || cartData.items.length === 0) {
     redirect("/cart");
@@ -33,7 +31,7 @@ export default async function CheckoutPage() {
         <h1 className="font-serif text-3xl font-bold text-wine-900 mt-1">Shipping & Payment</h1>
       </div>
 
-      <CheckoutFormClient cart={cartData} user={user} />
+      <CheckoutFormClient cart={cartData} user={user} defaultAddress={defaultAddress} />
     </div>
   );
 }

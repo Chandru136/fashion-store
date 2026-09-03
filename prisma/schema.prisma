@@ -303,6 +303,12 @@ model Order {
   shippingCity  String
   shippingState String
   shippingPincode String
+  billingName String
+  billingPhone String
+  billingAddress String
+  billingCity String
+  billingState String
+  billingPincode String
   trackingNumber String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt

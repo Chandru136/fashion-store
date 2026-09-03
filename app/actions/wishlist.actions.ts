@@ -8,13 +8,7 @@ import { verifySessionToken } from "@/lib/auth";
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("aarna_session_user");
-  if (!sessionCookie?.value) return null;
-  try {
-    const userObj = JSON.parse(sessionCookie.value);
-    return userObj.id;
-  } catch (e) {
-    return null;
-  }
+  return (await verifySessionToken(sessionCookie?.value))?.id ?? null;
 }
 
 export async function toggleWishlistAction(productId: string) {
@@ -23,6 +17,10 @@ export async function toggleWishlistAction(productId: string) {
     if (!userId) {
       return { success: false, error: "Please log in to save items to your wishlist" };
     }
+
+    if (!productId || typeof productId !== "string") return { success: false, error: "Invalid product." };
+    const product = await prisma.product.findFirst({ where: { id: productId, status: "ACTIVE" }, select: { id: true } });
+    if (!product) return { success: false, error: "Product is not available." };
 
     let wishlist = await prisma.wishlist.findUnique({
       where: { userId },
@@ -73,6 +71,7 @@ export async function getUserWishlistAction() {
             include: {
               images: { orderBy: { sortOrder: "asc" } },
               category: { select: { name: true } },
+              variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
             },
           },
         },
@@ -95,6 +94,7 @@ export async function getUserWishlistAction() {
       discountPercent,
       categoryName: p.category.name,
       primaryImage: p.images[0]?.url || "/images/placeholder.jpg",
+      variantId: p.variants[0]?.id,
     };
   });
 }

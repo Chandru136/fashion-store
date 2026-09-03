@@ -8,7 +8,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 export default async function OrdersPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get("aarna_session_user");
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/orders");
 
   const user = await verifySessionToken(sessionCookie.value);

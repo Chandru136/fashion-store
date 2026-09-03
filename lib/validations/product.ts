@@ -33,7 +33,7 @@ export const ProductSchema = z.object({
   bestseller: z.boolean().default(false),
   newArrival: z.boolean().default(true),
   images: z.array(z.object({
-    url: z.string().url("Valid image URL required"),
+    url: z.string().refine((value) => value.startsWith("/uploads/products/") || z.string().url().safeParse(value).success, "Valid image URL required"),
     altText: z.string().optional(),
     isPrimary: z.boolean().default(false),
     sortOrder: z.number().default(0),

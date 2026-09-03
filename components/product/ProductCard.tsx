@@ -22,6 +22,7 @@ export interface ProductCardProps {
   newArrival?: boolean;
   variantId?: string;
   colors?: string[];
+  initialWishlisted?: boolean;
 }
 
 export function ProductCard({
@@ -40,16 +41,17 @@ export function ProductCard({
   newArrival = false,
   variantId,
   colors = ["#8B0000", "#00008B", "#006400"],
+  initialWishlisted = false,
 }: ProductCardProps) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(initialWishlisted);
   const [isAdding, setIsAdding] = useState(false);
   const [addedSuccess, setAddedSuccess] = useState(false);
 
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsWishlisted(!isWishlisted);
-    await toggleWishlistAction(id);
+    const res = await toggleWishlistAction(id);
+    if (res.success) setIsWishlisted(Boolean(res.isWishlisted));
   };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
@@ -60,6 +62,7 @@ export function ProductCard({
     const res = await addToCartAction(variantId, 1);
     setIsAdding(false);
     if (res.success) {
+      window.dispatchEvent(new CustomEvent("cart:updated", { detail: res.cart }));
       setAddedSuccess(true);
       setTimeout(() => setAddedSuccess(false), 2000);
     }

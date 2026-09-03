@@ -2,7 +2,8 @@ import React from "react";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { AdminOrderStatusUpdaterClient } from "./AdminOrderStatusUpdaterClient";
-import { Printer, MapPin, Phone, User, ShieldCheck } from "lucide-react";
+import { MapPin } from "lucide-react";
+import { PrintOrderButton } from "./PrintOrderButton";
 
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const p = await params;
@@ -34,12 +35,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
           <p className="text-xs text-stone-500 mt-1">Placed on {new Date(order.createdAt).toLocaleString("en-IN")}</p>
         </div>
 
-        <button
-          onClick={() => {}}
-          className="px-4 py-2 bg-white border border-stone-300 text-stone-800 font-bold text-xs rounded hover:border-gold-500 flex items-center gap-1.5 shadow-sm"
-        >
-          <Printer className="w-4 h-4 text-wine-800" /> Print Tax Invoice
-        </button>
+        <PrintOrderButton />
       </div>
 
       {/* Admin Status Updater Widget */}
@@ -66,12 +62,26 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         {/* Address & Payment summary */}
         <div className="p-6 bg-ivory-50 rounded-xl border gold-border space-y-4 shadow-sm">
           <div>
+            <h4 className="font-serif font-bold text-wine-900 text-xs uppercase tracking-wider mb-2">Customer Account</h4>
+            <p className="font-bold text-stone-900">{order.user.name}</p>
+            <p className="text-stone-600 mt-1">{order.user.email}</p>
+            {order.user.phone && <p className="text-stone-600 mt-1">Account phone: {order.user.phone}</p>}
+          </div>
+
+          <div>
             <h4 className="font-serif font-bold text-wine-900 text-xs uppercase tracking-wider mb-2 flex items-center gap-1">
               <MapPin className="w-4 h-4 text-gold-600" /> Shipping Destination
             </h4>
             <p className="font-bold text-stone-900">{order.shippingName}</p>
             <p className="text-stone-600 mt-1">{order.shippingAddress}, {order.shippingCity}, {order.shippingState} - {order.shippingPincode}</p>
             <p className="text-stone-600 font-semibold mt-1">Phone: {order.shippingPhone}</p>
+          </div>
+
+          <div className="pt-3 border-t border-ivory-300">
+            <h4 className="font-serif font-bold text-wine-900 text-xs uppercase tracking-wider mb-2">Billing Address</h4>
+            <p className="font-bold text-stone-900">{order.billingName || order.shippingName}</p>
+            <p className="text-stone-600 mt-1">{order.billingAddress || order.shippingAddress}, {order.billingCity || order.shippingCity}, {order.billingState || order.shippingState} - {order.billingPincode || order.shippingPincode}</p>
+            <p className="text-stone-600 font-semibold mt-1">Phone: {order.billingPhone || order.shippingPhone}</p>
           </div>
 
           <div className="pt-3 border-t border-ivory-300 space-y-1 text-stone-700">

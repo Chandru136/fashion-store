@@ -480,6 +480,12 @@ async function main() {
         shippingCity: i % 2 === 0 ? "Chennai" : "Bengaluru",
         shippingState: i % 2 === 0 ? "Tamil Nadu" : "Karnataka",
         shippingPincode: "600001",
+        billingName: cust.name,
+        billingPhone: cust.phone || "+91 9876543210",
+        billingAddress: `${10 + i}, Royal Heritage Garden, MG Road`,
+        billingCity: i % 2 === 0 ? "Chennai" : "Bengaluru",
+        billingState: i % 2 === 0 ? "Tamil Nadu" : "Karnataka",
+        billingPincode: "600001",
         trackingNumber: status === OrderStatus.SHIPPED || status === OrderStatus.DELIVERED ? `AWB987654${10 + i}` : null,
         items: {
           create: [

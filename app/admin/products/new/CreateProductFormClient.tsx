@@ -25,6 +25,8 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
   const [occasion, setOccasion] = useState("Wedding");
   const [pattern, setPattern] = useState("Traditional Zari Border");
   const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800");
+  const [imageSource, setImageSource] = useState<"url" | "file">("url");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [color, setColor] = useState("Royal Red");
   const [size, setSize] = useState("Free Size");
   const [variantSku, setVariantSku] = useState("");
@@ -54,7 +56,27 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    const res = await createProductAction({
+    try {
+      let productImageUrl = imageUrl.trim();
+
+      if (imageSource === "file") {
+        if (!imageFile) throw new Error("Choose an image file to upload.");
+
+        const uploadData = new FormData();
+        uploadData.append("image", imageFile);
+        const uploadResponse = await fetch("/api/admin/product-images", {
+          method: "POST",
+          body: uploadData,
+        });
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok || !uploadResult.url) {
+          throw new Error(uploadResult.error || "Failed to upload the product image.");
+        }
+        productImageUrl = uploadResult.url;
+      }
+
+      const res = await createProductAction({
       name,
       slug,
       sku,
@@ -70,7 +92,7 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
       pattern,
       status, featured, bestseller, newArrival,
       images: [
-        { url: imageUrl, altText: name, isPrimary: true, sortOrder: 1 },
+        { url: productImageUrl, altText: name, isPrimary: true, sortOrder: 1 },
       ],
       variants: [
         {
@@ -84,13 +106,16 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
       ],
     }, categoryId === NEW_CATEGORY_VALUE ? newCategoryName : undefined);
 
-    setIsSubmitting(false);
-
-    if (res.success) {
-      router.push("/admin/products");
-      router.refresh();
-    } else {
-      setErrorMsg(res.error || "Failed to create product");
+      if (res.success) {
+        router.push("/admin/products");
+        router.refresh();
+      } else {
+        setErrorMsg(res.error || "Failed to create product");
+      }
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Failed to create product");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -193,14 +218,38 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
           <label className="font-bold text-stone-700 block mb-1">Short Description</label><input value={shortDescription} onChange={(e)=>setShortDescription(e.target.value)} maxLength={250} className="w-full px-3 py-2 border border-stone-300 rounded" />
         </div>
         <div className="sm:col-span-2">
-          <label className="font-bold text-stone-700 block mb-1">Image URL</label>
-          <input
-            type="url"
-            required
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="w-full px-3 py-2 border border-stone-300 rounded font-mono"
-          />
+          <span className="font-bold text-stone-700 block mb-2">Product Image</span>
+          <div className="mb-3 flex flex-wrap gap-5">
+            <label className="flex items-center gap-2 font-semibold">
+              <input type="radio" name="imageSource" checked={imageSource === "url"} onChange={() => setImageSource("url")} />
+              Paste image URL
+            </label>
+            <label className="flex items-center gap-2 font-semibold">
+              <input type="radio" name="imageSource" checked={imageSource === "file"} onChange={() => setImageSource("file")} />
+              Upload from device
+            </label>
+          </div>
+          {imageSource === "url" ? (
+            <input
+              type="url"
+              required
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://example.com/product-image.jpg"
+              className="w-full px-3 py-2 border border-stone-300 rounded font-mono"
+            />
+          ) : (
+            <>
+              <input
+                type="file"
+                required
+                accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                className="w-full rounded border border-stone-300 px-3 py-2 file:mr-3 file:rounded file:border-0 file:bg-wine-900 file:px-3 file:py-2 file:text-xs file:font-bold file:text-gold-300"
+              />
+              <p className="mt-1 text-stone-500">JPEG, PNG, WebP, GIF or AVIF; maximum 5 MB. Works with phone, tablet and computer file pickers.</p>
+            </>
+          )}
         </div>
         <div className="sm:col-span-2">
           <label className="font-bold text-stone-700 block mb-1">Detailed Description & Loom Specs</label>
