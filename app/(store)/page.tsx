@@ -5,9 +5,10 @@ import { FeaturedCollections } from "@/components/home/FeaturedCollections";
 import { BrowseCategories } from "@/components/home/BrowseCategories";
 import { ProductCard } from "@/components/product/ProductCard";
 import Link from "next/link";
-import { Sparkles, ArrowRight, Star, Instagram } from "lucide-react";
+import { ArrowRight, Star, Instagram } from "lucide-react";
 import { Play, Video } from "lucide-react";
 import { SpinToWin } from "@/components/home/SpinToWin";
+import { PromoBannerCarousel } from "@/components/home/PromoBannerCarousel";
 
 export const revalidate = 60; // ISR Revalidation every 60 seconds
 
@@ -16,15 +17,21 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-0">
-      <SpinToWin />
-      {/* 1. Hero Carousel */}
+      {/* 1. Hero Carousel — first thing rendered, directly under the site header */}
       <HeroCarousel banners={data.banners} />
+
+      <SpinToWin />
 
       {/* 2. Browse Categories */}
       <BrowseCategories categories={data.categories} />
 
       {/* 3. Featured Editorial Collections */}
       <FeaturedCollections collections={data.collections} />
+
+      {/* 5. Full-Width Promotional Banner — rotates through 4 landscape
+          images (crossfade) behind the same fixed headline/CTA, Pothys-style:
+          full-bleed, minimal overlay, no boxed card. */}
+      <PromoBannerCarousel />
 
       {/* 4.5. Motion Lookbook — CSS motion keeps the experience fast without third-party video embeds. */}
       <section className="py-10 sm:py-14 bg-white border-y border-ivory-300">
@@ -77,39 +84,6 @@ export default async function HomePage() {
             {data.bestsellers.map((prod) => (
               <ProductCard key={prod.id} {...prod} />
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Full-Width Promotional Banner Card */}
-      <section className="max-w-7xl mx-auto px-4 py-8 sm:py-10">
-        <div className="relative rounded-xl sm:rounded-2xl overflow-hidden wine-gradient-bg border-2 gold-border shadow-2xl p-6 sm:p-8 md:p-14 text-ivory-50 flex flex-col md:flex-row items-center justify-between gap-6 sm:gap-8">
-          <div className="space-y-4 max-w-xl text-center md:text-left">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest text-gold-300 bg-wine-800/80 gold-border">
-              <Sparkles className="w-3.5 h-3.5 text-gold-400" /> Royal Bridal Trunk 2026
-            </span>
-            <h3 className="font-serif text-2xl sm:text-3xl md:text-5xl font-bold gold-gradient-text leading-tight">
-              The Grand Kanchipuram Heritage Edition
-            </h3>
-            <p className="text-sm text-ivory-200 font-light leading-relaxed">
-              Elevate your bridal wardrobe with certified pure mulberry silk woven with authentic gold & silver zari. Receive a complimentary silk care trunk with every bridal order.
-            </p>
-            <div className="pt-2">
-              <Link
-                href="/category/kanchipuram-bridal-silk"
-                className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 sm:px-8 py-3.5 gold-gradient-bg text-wine-900 font-bold text-xs rounded uppercase tracking-widest shadow-xl hover:brightness-110 transition-all"
-              >
-                Shop Bridal Trunk <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-
-          <div className="w-full md:w-80 h-56 sm:h-72 rounded-lg overflow-hidden border gold-border shadow-2xl relative">
-            <img
-              src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800"
-              alt="Bridal Silk"
-              className="w-full h-full object-cover"
-            />
           </div>
         </div>
       </section>

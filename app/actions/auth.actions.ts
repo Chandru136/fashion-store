@@ -47,7 +47,7 @@ export async function registerUser(input: RegisterInput): Promise<AuthResult> {
   const token = await createSessionToken(sessionUser);
 
   const cookieStore = await cookies();
-  cookieStore.set("aarna_session_user", JSON.stringify({ id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role }), {
+  cookieStore.set("aarna_session_user", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -102,7 +102,7 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
   const token = await createSessionToken(sessionUser);
 
   const cookieStore = await cookies();
-  cookieStore.set("aarna_session_user", JSON.stringify({ id: user.id, name: user.name, email: user.email, role: user.role }), {
+  cookieStore.set("aarna_session_user", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -115,6 +115,6 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
 
 export async function logoutUser() {
   const cookieStore = await cookies();
-  cookieStore.delete("sudha_collections_session_user");
+  cookieStore.delete("aarna_session_user");
   return { success: true };
 }

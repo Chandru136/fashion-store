@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -14,107 +14,120 @@ interface Banner {
   buttonUrl?: string | null;
 }
 
-export function HeroCarousel({ banners = [] }: { banners: Banner[] }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+interface HeroCarouselProps {
+  banners: Banner[];
+}
+
+const AUTOPLAY_INTERVAL = 5000;
+
+export function HeroCarousel({ banners }: HeroCarouselProps) {
+  const [active, setActive] = useState(0);
+
+  const goTo = useCallback(
+    (index: number) => {
+      setActive(((index % banners.length) + banners.length) % banners.length);
+    },
+    [banners.length]
+  );
+
+  const next = useCallback(() => goTo(active + 1), [active, goTo]);
+  const prev = useCallback(() => goTo(active - 1), [active, goTo]);
 
   useEffect(() => {
-    if (banners.length === 0 || isPaused) return;
-
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 5000);
-
+    if (banners.length <= 1) return;
+    const timer = setInterval(next, AUTOPLAY_INTERVAL);
     return () => clearInterval(timer);
-  }, [banners.length, isPaused]);
+  }, [next, banners.length]);
 
-  if (banners.length === 0) return null;
-
-  const current = banners[currentIndex];
+  if (!banners || banners.length === 0) return null;
 
   return (
-    <section
-      className="relative h-[540px] sm:h-[500px] md:h-auto md:aspect-[21/9] md:min-h-[480px] bg-wine-900 overflow-hidden group select-none"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      {/* Background Image Slide */}
-      {banners.map((banner, index) => (
+    <section className="relative w-full h-[70vh] min-h-[420px] max-h-[720px] overflow-hidden bg-wine-900">
+      {banners.map((banner, idx) => (
         <div
           key={banner.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+          className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+            idx === active ? "opacity-100 z-10" : "opacity-0 z-0"
           }`}
+          aria-hidden={idx !== active}
         >
-          <img
-            src={banner.desktopImage}
-            alt={banner.title}
-            className="w-full h-full object-cover object-center hidden md:block"
-          />
-          <img
-            src={banner.mobileImage || banner.desktopImage}
-            alt={banner.title}
-            className="w-full h-full object-cover object-center md:hidden"
-          />
-          {/* Subtle Dark Vignette Overlay for Readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-wine-900 via-wine-900/35 to-transparent md:bg-gradient-to-r md:from-wine-900/90 md:via-wine-900/50 md:to-transparent" />
+          {/* Full-bleed image — no boxed card, no border, edge to edge */}
+          <picture>
+            {banner.mobileImage && (
+              <source media="(max-width: 640px)" srcSet={banner.mobileImage} />
+            )}
+            <img
+              src={banner.desktopImage}
+              alt={banner.title}
+              className="w-full h-full object-cover"
+              loading={idx === 0 ? "eager" : "lazy"}
+            />
+          </picture>
+
+          {/* Minimal gradient — just enough for text legibility, not a heavy overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-wine-950/70 via-wine-900/10 to-transparent sm:bg-gradient-to-r sm:from-wine-950/60 sm:via-wine-900/10 sm:to-transparent" />
+
+          {/* Text block — bottom-left on mobile, left-third on desktop, Pothys-style restraint */}
+          <div className="absolute inset-0 flex items-end sm:items-center">
+            <div className="max-w-7xl mx-auto px-6 sm:px-10 w-full">
+              <div className="max-w-md space-y-3 pb-10 sm:pb-0 text-ivory-50">
+                {banner.subtitle && (
+                  <span className="inline-block text-[10px] sm:text-xs font-bold tracking-[0.3em] uppercase text-gold-300">
+                    {banner.subtitle}
+                  </span>
+                )}
+                <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+                  {banner.title}
+                </h1>
+                {banner.buttonText && banner.buttonUrl && (
+                  <div className="pt-2">
+                    <Link
+                      href={banner.buttonUrl}
+                      className="inline-flex items-center gap-2 px-7 py-3 bg-ivory-50 text-wine-900 font-bold text-xs uppercase tracking-widest rounded-sm hover:bg-gold-300 transition-colors"
+                    >
+                      {banner.buttonText}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       ))}
 
-      {/* Content Overlay */}
-      <div className="relative z-20 max-w-7xl mx-auto h-full px-4 sm:px-6 md:px-12 flex flex-col justify-end md:justify-center text-ivory-50 pb-16 pt-12 md:py-12">
-        <div className="max-w-xl space-y-3 md:space-y-4 animate-fade-in">
-          <span className="inline-flex items-center gap-1.5 self-start px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-gold-300 bg-wine-800/80 border gold-border">
-            <Sparkles className="w-3.5 h-3.5 text-gold-400" /> Handcrafted Royal Heritage
-          </span>
-          <h1 className="font-serif text-[2rem] sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.1] gold-gradient-text">
-            {current.title}
-          </h1>
-          {current.subtitle && (
-            <p className="text-sm md:text-base text-ivory-200 font-light max-w-lg line-clamp-3 leading-relaxed">
-              {current.subtitle}
-            </p>
-          )}
-          <div className="pt-2">
-            <Link
-              href={current.buttonUrl || "/products"}
-              className="inline-flex w-full sm:w-auto justify-center items-center gap-2 px-6 sm:px-8 py-3.5 wine-gradient-bg text-gold-300 font-semibold text-xs rounded uppercase tracking-widest gold-border shadow-xl hover:brightness-110 transition-all gold-border-glow"
-            >
-              {current.buttonText || "Explore Collection"}
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation Arrows */}
-      <button
-        onClick={() => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length)}
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 md:w-10 md:h-10 rounded-full bg-black/30 backdrop-blur-md text-ivory-50 flex items-center justify-center hover:bg-gold-500 hover:text-wine-900 transition-all md:opacity-0 md:group-hover:opacity-100"
-        aria-label="Previous Banner"
-      >
-        <ChevronLeft className="w-6 h-6" />
-      </button>
-      <button
-        onClick={() => setCurrentIndex((prev) => (prev + 1) % banners.length)}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 md:w-10 md:h-10 rounded-full bg-black/30 backdrop-blur-md text-ivory-50 flex items-center justify-center hover:bg-gold-500 hover:text-wine-900 transition-all md:opacity-0 md:group-hover:opacity-100"
-        aria-label="Next Banner"
-      >
-        <ChevronRight className="w-6 h-6" />
-      </button>
-
-      {/* Indicator Dots */}
-      <div className="absolute bottom-5 md:bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
-        {banners.map((_, idx) => (
+      {/* Arrow navigation — subtle, appears on hover on desktop */}
+      {banners.length > 1 && (
+        <>
           <button
-            key={idx}
-            onClick={() => setCurrentIndex(idx)}
-            className={`h-1.5 rounded-full transition-all ${
-              idx === currentIndex ? "w-8 bg-gold-400" : "w-2 bg-white/40 hover:bg-white"
-            }`}
-            aria-label={`Go to slide ${idx + 1}`}
-          />
-        ))}
-      </div>
+            onClick={prev}
+            aria-label="Previous slide"
+            className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 items-center justify-center rounded-full bg-ivory-50/80 text-wine-900 hover:bg-ivory-50 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={next}
+            aria-label="Next slide"
+            className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 items-center justify-center rounded-full bg-ivory-50/80 text-wine-900 hover:bg-ivory-50 transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          {/* Dot indicators — Pothys' "Go to item N" pattern */}
+          <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+            {banners.map((banner, idx) => (
+              <button
+                key={banner.id}
+                onClick={() => goTo(idx)}
+                aria-label={`Go to item ${idx + 1}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  idx === active ? "w-6 bg-gold-300" : "w-1.5 bg-ivory-50/50 hover:bg-ivory-50/80"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 }
