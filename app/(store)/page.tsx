@@ -22,9 +22,6 @@ export default async function HomePage() {
 
       <SpinToWin />
 
-      {/* 2. Browse Categories */}
-      <BrowseCategories categories={data.categories} />
-
       {/* 3. Featured Editorial Collections */}
       <FeaturedCollections collections={data.collections} />
 
@@ -115,6 +112,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Shop By Category */}
+      <BrowseCategories categories={data.categories} />
 
       {/* 9. Seasonal discovery links — adds depth without duplicating product catalogue logic. */}
       <section className="max-w-7xl mx-auto px-4 pb-2">
