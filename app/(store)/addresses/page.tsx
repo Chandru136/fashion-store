@@ -5,12 +5,18 @@ import { getAddresses, deleteAddress, setDefaultAddress } from "@/app/actions/ad
 import AddAddressForm from "./AddAddressForm";
 import { MapPin, Trash2, Star } from "lucide-react";
 
-export default async function AddressesPage() {
+export default async function AddressesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string; add?: string }>;
+}) {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get("aarna_session_user");
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/addresses");
 
   const addresses = await getAddresses();
+  const query = await searchParams;
+  const returnTo = query.returnTo === "/checkout" ? "/checkout" : undefined;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
@@ -80,7 +86,7 @@ export default async function AddressesPage() {
           </div>
         ))}
 
-        <AddAddressForm />
+        <AddAddressForm returnTo={returnTo} initiallyOpen={query.add === "1"} />
       </div>
     </div>
   );

@@ -20,13 +20,13 @@ export const LoginSchema = z.object({
 });
 
 export const AddressSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  phone: z.string().min(10, "Phone number is required"),
-  addressLine1: z.string().min(5, "Address Line 1 is required"),
-  addressLine2: z.string().optional(),
-  city: z.string().min(2, "City is required"),
-  state: z.string().min(2, "State is required"),
-  pincode: z.string().min(6, "Valid 6-digit Pincode required"),
+  name: z.string().trim().min(2, "Name is required").max(100),
+  phone: z.string().trim().regex(/^(?:\+91[\s-]?)?[6-9]\d{9}$/, "Enter a valid Indian phone number"),
+  addressLine1: z.string().trim().min(5, "Address Line 1 is required").max(200),
+  addressLine2: z.string().trim().max(200).optional(),
+  city: z.string().trim().min(2, "City is required").max(100),
+  state: z.string().trim().min(2, "State is required").max(100),
+  pincode: z.string().trim().regex(/^\d{6}$/, "Enter a valid 6-digit pincode"),
   country: z.string().default("India"),
   isDefault: z.boolean().default(false),
 });

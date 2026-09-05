@@ -6,6 +6,7 @@ import { verifySessionToken } from "@/lib/auth";
 import { AddressSchema, AddressInput } from "@/lib/validations/auth";
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
+import { City, State } from "country-state-city";
 
 async function requireSession() {
   const cookieStore = await cookies();
@@ -31,6 +32,12 @@ export async function createAddress(input: AddressInput): Promise<CreateAddressR
   try {
     const session = await requireSession();
     const validated = AddressSchema.parse(input);
+    const selectedState = State.getStatesOfCountry("IN").find((state) => state.name === validated.state);
+    const validCity = selectedState && City.getCitiesOfState("IN", selectedState.isoCode)
+      .some((city) => city.name === validated.city);
+    if (!selectedState || !validCity) {
+      return { success: false, error: "Please select a valid Indian state and city." };
+    }
 
     // If this is the user's first address, or they explicitly asked for
     // default, make sure only one address is ever marked default.
@@ -49,6 +56,7 @@ export async function createAddress(input: AddressInput): Promise<CreateAddressR
     });
 
     revalidatePath("/addresses");
+    revalidatePath("/checkout");
     return { success: true };
   } catch (error) {
     if (error instanceof ZodError) {
@@ -73,15 +81,31 @@ export async function deleteAddress(addressId: string) {
 
   // Scope the delete to this user's own addresses — prevents deleting
   // another user's address by guessing/tampering with an id.
-  const result = await prisma.address.deleteMany({
+  const address = await prisma.address.findFirst({
     where: { id: addressId, userId: session.id },
+    select: { id: true, isDefault: true },
   });
 
-  if (result.count === 0) {
+  if (!address) {
     return { success: false, error: "Address not found" };
   }
 
+  await prisma.$transaction(async (tx) => {
+    await tx.address.delete({ where: { id: address.id } });
+    if (address.isDefault) {
+      const replacement = await tx.address.findFirst({
+        where: { userId: session.id },
+        orderBy: { id: "asc" },
+        select: { id: true },
+      });
+      if (replacement) {
+        await tx.address.update({ where: { id: replacement.id }, data: { isDefault: true } });
+      }
+    }
+  });
+
   revalidatePath("/addresses");
+  revalidatePath("/checkout");
   return { success: true };
 }
 
@@ -105,5 +129,6 @@ export async function setDefaultAddress(addressId: string) {
   ]);
 
   revalidatePath("/addresses");
+  revalidatePath("/checkout");
   return { success: true };
 }

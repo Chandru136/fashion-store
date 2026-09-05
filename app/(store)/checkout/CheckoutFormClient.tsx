@@ -2,23 +2,26 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Truck, CreditCard, Banknote, CheckCircle, Lock } from "lucide-react";
+import Link from "next/link";
+import { Truck, CreditCard, Banknote, Lock, MapPin, Plus } from "lucide-react";
 import { createOrderAction } from "@/app/actions/order.actions";
 
-export function CheckoutFormClient({ cart, user, defaultAddress }: { cart: any; user: any; defaultAddress?: any }) {
-  const [shippingName, setShippingName] = useState(defaultAddress?.name || user.name || "");
-  const [shippingPhone, setShippingPhone] = useState(defaultAddress?.phone || "");
-  const [shippingAddress, setShippingAddress] = useState([defaultAddress?.addressLine1, defaultAddress?.addressLine2].filter(Boolean).join(", "));
-  const [shippingCity, setShippingCity] = useState(defaultAddress?.city || "");
-  const [shippingState, setShippingState] = useState(defaultAddress?.state || "");
-  const [shippingPincode, setShippingPincode] = useState(defaultAddress?.pincode || "");
+type SavedAddress = {
+  id: string;
+  name: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  city: string;
+  state: string;
+  pincode: string;
+  isDefault: boolean;
+};
+
+export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: SavedAddress[] }) {
+  const [shippingAddressId, setShippingAddressId] = useState(addresses[0]?.id || "");
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
-  const [billingName, setBillingName] = useState(defaultAddress?.name || user.name || "");
-  const [billingPhone, setBillingPhone] = useState(defaultAddress?.phone || "");
-  const [billingAddress, setBillingAddress] = useState([defaultAddress?.addressLine1, defaultAddress?.addressLine2].filter(Boolean).join(", "));
-  const [billingCity, setBillingCity] = useState(defaultAddress?.city || "");
-  const [billingState, setBillingState] = useState(defaultAddress?.state || "");
-  const [billingPincode, setBillingPincode] = useState(defaultAddress?.pincode || "");
+  const [billingAddressId, setBillingAddressId] = useState(addresses[0]?.id || "");
   const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("COD");
   const [couponCode, setCouponCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,18 +35,8 @@ export function CheckoutFormClient({ cart, user, defaultAddress }: { cart: any; 
     setErrorMsg(null);
 
     const res = await createOrderAction({
-      shippingName,
-      shippingPhone,
-      shippingAddress,
-      shippingCity,
-      shippingState,
-      shippingPincode,
-      billingName: billingSameAsShipping ? shippingName : billingName,
-      billingPhone: billingSameAsShipping ? shippingPhone : billingPhone,
-      billingAddress: billingSameAsShipping ? shippingAddress : billingAddress,
-      billingCity: billingSameAsShipping ? shippingCity : billingCity,
-      billingState: billingSameAsShipping ? shippingState : billingState,
-      billingPincode: billingSameAsShipping ? shippingPincode : billingPincode,
+      shippingAddressId,
+      billingAddressId: billingSameAsShipping ? undefined : billingAddressId,
       paymentMethod,
       couponCode: couponCode || undefined,
     });
@@ -67,71 +60,30 @@ export function CheckoutFormClient({ cart, user, defaultAddress }: { cart: any; 
             <Truck className="w-5 h-5 text-gold-600" /> 1. Shipping Address Details
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="font-bold text-stone-700 block mb-1">Full Name</label>
-              <input
-                type="text"
-                required
-                value={shippingName}
-                onChange={(e) => setShippingName(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:border-gold-500"
-              />
+          {addresses.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-gold-400 bg-ivory-50 p-6 text-center">
+              <MapPin className="mx-auto mb-2 h-8 w-8 text-gold-600" />
+              <p className="mb-3 text-xs text-stone-600">Add a delivery address before placing your order.</p>
+              <Link href="/addresses?returnTo=/checkout&add=1" className="inline-flex items-center gap-1 rounded bg-wine-900 px-4 py-2 text-xs font-bold text-white">
+                <Plus className="h-4 w-4" /> Add address
+              </Link>
             </div>
-            <div>
-              <label className="font-bold text-stone-700 block mb-1">Phone Number</label>
-              <input
-                type="tel"
-                required
-                value={shippingPhone}
-                onChange={(e) => setShippingPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:border-gold-500"
-              />
+          ) : (
+            <div className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
+              {addresses.map((address) => (
+                <label key={address.id} className={`cursor-pointer rounded-lg border p-4 ${shippingAddressId === address.id ? "border-gold-500 bg-ivory-50 ring-1 ring-gold-400" : "border-stone-200"}`}>
+                  <input type="radio" name="shippingAddress" className="sr-only" checked={shippingAddressId === address.id} onChange={() => setShippingAddressId(address.id)} />
+                  <span className="font-bold text-wine-900">{address.name}{address.isDefault ? " · Default" : ""}</span>
+                  <span className="mt-1 block text-stone-600">{address.addressLine1}{address.addressLine2 ? `, ${address.addressLine2}` : ""}</span>
+                  <span className="block text-stone-600">{address.city}, {address.state} - {address.pincode}</span>
+                  <span className="mt-1 block text-stone-600">{address.phone}</span>
+                </label>
+              ))}
+              <Link href="/addresses?returnTo=/checkout&add=1" className="flex min-h-28 items-center justify-center gap-1 rounded-lg border border-dashed border-gold-400 font-bold text-wine-900 hover:bg-ivory-50">
+                <Plus className="h-4 w-4" /> Manage addresses
+              </Link>
             </div>
-            <div className="sm:col-span-2">
-              <label className="font-bold text-stone-700 block mb-1">Flat / House No. / Street Address</label>
-              <input
-                type="text"
-                required
-                value={shippingAddress}
-                onChange={(e) => setShippingAddress(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:border-gold-500"
-              />
-            </div>
-            <div>
-              <label className="font-bold text-stone-700 block mb-1">City</label>
-              <input
-                type="text"
-                required
-                value={shippingCity}
-                onChange={(e) => setShippingCity(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:border-gold-500"
-              />
-            </div>
-            <div>
-              <label className="font-bold text-stone-700 block mb-1">State</label>
-              <input
-                type="text"
-                required
-                value={shippingState}
-                onChange={(e) => setShippingState(e.target.value)}
-                className="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:border-gold-500"
-              />
-            </div>
-            <div>
-              <label className="font-bold text-stone-700 block mb-1">6-Digit Pincode</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                required
-                value={shippingPincode}
-                onChange={(e) => setShippingPincode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                className="w-full px-3 py-2 border border-stone-300 rounded focus:outline-none focus:border-gold-500"
-              />
-            </div>
-          </div>
+          )}
         </div>
 
         <div className="p-6 bg-white rounded-lg border gold-border space-y-4 shadow-sm">
@@ -141,14 +93,9 @@ export function CheckoutFormClient({ cart, user, defaultAddress }: { cart: any; 
             Billing address is the same as shipping address
           </label>
           {!billingSameAsShipping && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <label className="font-bold text-stone-700">Full Name<input required value={billingName} onChange={(e) => setBillingName(e.target.value)} className="mt-1 w-full px-3 py-2 border border-stone-300 rounded font-normal" /></label>
-              <label className="font-bold text-stone-700">Phone Number<input type="tel" required value={billingPhone} onChange={(e) => setBillingPhone(e.target.value)} className="mt-1 w-full px-3 py-2 border border-stone-300 rounded font-normal" /></label>
-              <label className="sm:col-span-2 font-bold text-stone-700">Billing Address<input required value={billingAddress} onChange={(e) => setBillingAddress(e.target.value)} className="mt-1 w-full px-3 py-2 border border-stone-300 rounded font-normal" /></label>
-              <label className="font-bold text-stone-700">City<input required value={billingCity} onChange={(e) => setBillingCity(e.target.value)} className="mt-1 w-full px-3 py-2 border border-stone-300 rounded font-normal" /></label>
-              <label className="font-bold text-stone-700">State<input required value={billingState} onChange={(e) => setBillingState(e.target.value)} className="mt-1 w-full px-3 py-2 border border-stone-300 rounded font-normal" /></label>
-              <label className="font-bold text-stone-700">6-Digit Pincode<input inputMode="numeric" pattern="[0-9]{6}" required value={billingPincode} onChange={(e) => setBillingPincode(e.target.value.replace(/\D/g, "").slice(0, 6))} className="mt-1 w-full px-3 py-2 border border-stone-300 rounded font-normal" /></label>
-            </div>
+            <select required value={billingAddressId} onChange={(e) => setBillingAddressId(e.target.value)} className="w-full rounded border border-stone-300 px-3 py-2 text-xs">
+              {addresses.map((address) => <option key={address.id} value={address.id}>{address.name} — {address.addressLine1}, {address.city}</option>)}
+            </select>
           )}
         </div>
 
@@ -248,7 +195,7 @@ export function CheckoutFormClient({ cart, user, defaultAddress }: { cart: any; 
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || addresses.length === 0}
             className="w-full py-4 wine-gradient-bg text-gold-300 font-bold text-xs uppercase tracking-widest rounded gold-border shadow-xl hover:brightness-110 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? "Placing Order..." : "Place Order"}

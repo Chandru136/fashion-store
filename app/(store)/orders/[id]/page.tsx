@@ -95,15 +95,15 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <h4 className="font-serif font-bold text-wine-900 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-gold-600" /> Delivery Address
             </h4>
-            <p className="font-bold text-stone-900">{order.shippingName}</p>
-            <p className="text-stone-600 font-light mt-1">{order.shippingAddress}, {order.shippingCity}, {order.shippingState} - {order.shippingPincode}</p>
+            <p className="font-bold text-stone-900 capitalize">{order.shippingName}</p>
+            <p className="text-stone-600 font-light mt-1 capitalize">{order.shippingAddress}, {order.shippingCity}, {order.shippingState} - {order.shippingPincode}</p>
             <p className="text-stone-600 mt-1">Phone: {order.shippingPhone}</p>
           </div>
 
           <div className="pt-3 border-t border-ivory-300">
             <h4 className="font-serif font-bold text-wine-900 text-xs uppercase tracking-wider mb-2">Billing Address</h4>
-            <p className="font-bold text-stone-900">{order.billingName || order.shippingName}</p>
-            <p className="text-stone-600 font-light mt-1">{order.billingAddress || order.shippingAddress}, {order.billingCity || order.shippingCity}, {order.billingState || order.shippingState} - {order.billingPincode || order.shippingPincode}</p>
+            <p className="font-bold text-stone-900 capitalize">{order.billingName || order.shippingName}</p>
+            <p className="text-stone-600 font-light mt-1 capitalize">{order.billingAddress || order.shippingAddress}, {order.billingCity || order.shippingCity}, {order.billingState || order.shippingState} - {order.billingPincode || order.shippingPincode}</p>
             <p className="text-stone-600 mt-1">Phone: {order.billingPhone || order.shippingPhone}</p>
           </div>
 

@@ -15,9 +15,12 @@ export default async function CheckoutPage() {
     redirect("/login?callbackUrl=/checkout");
   }
 
-  const [cartData, defaultAddress] = await Promise.all([
+  const [cartData, addresses] = await Promise.all([
     getOrCreateCart(user.id),
-    prisma.address.findFirst({ where: { userId: user.id }, orderBy: [{ isDefault: "desc" }, { id: "asc" }] }),
+    prisma.address.findMany({
+      where: { userId: user.id },
+      orderBy: [{ isDefault: "desc" }, { id: "asc" }],
+    }),
   ]);
 
   if (!cartData || cartData.items.length === 0) {
@@ -31,7 +34,7 @@ export default async function CheckoutPage() {
         <h1 className="font-serif text-3xl font-bold text-wine-900 mt-1">Shipping & Payment</h1>
       </div>
 
-      <CheckoutFormClient cart={cartData} user={user} defaultAddress={defaultAddress} />
+      <CheckoutFormClient cart={cartData} addresses={addresses} />
     </div>
   );
 }

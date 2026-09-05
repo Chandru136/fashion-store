@@ -25,20 +25,36 @@ export async function createOrderAction(input: CreateOrderInput) {
       return { success: false, error: "Online payment is not available yet. Please choose Cash on Delivery." };
     }
 
+    const addressIds = [...new Set([
+      validated.shippingAddressId,
+      validated.billingAddressId || validated.shippingAddressId,
+    ])];
+    const savedAddresses = await prisma.address.findMany({
+      where: { id: { in: addressIds }, userId },
+    });
+    const shippingAddress = savedAddresses.find((address) => address.id === validated.shippingAddressId);
+    const billingAddress = savedAddresses.find(
+      (address) => address.id === (validated.billingAddressId || validated.shippingAddressId),
+    );
+
+    if (!shippingAddress || !billingAddress) {
+      return { success: false, error: "Please select a valid saved address." };
+    }
+
     const order = await createOrderFromCart({
       userId,
-      shippingName: validated.shippingName,
-      shippingPhone: validated.shippingPhone,
-      shippingAddress: validated.shippingAddress,
-      shippingCity: validated.shippingCity,
-      shippingState: validated.shippingState,
-      shippingPincode: validated.shippingPincode,
-      billingName: validated.billingName,
-      billingPhone: validated.billingPhone,
-      billingAddress: validated.billingAddress,
-      billingCity: validated.billingCity,
-      billingState: validated.billingState,
-      billingPincode: validated.billingPincode,
+      shippingName: shippingAddress.name,
+      shippingPhone: shippingAddress.phone,
+      shippingAddress: [shippingAddress.addressLine1, shippingAddress.addressLine2].filter(Boolean).join(", "),
+      shippingCity: shippingAddress.city,
+      shippingState: shippingAddress.state,
+      shippingPincode: shippingAddress.pincode,
+      billingName: billingAddress.name,
+      billingPhone: billingAddress.phone,
+      billingAddress: [billingAddress.addressLine1, billingAddress.addressLine2].filter(Boolean).join(", "),
+      billingCity: billingAddress.city,
+      billingState: billingAddress.state,
+      billingPincode: billingAddress.pincode,
       paymentMethod: validated.paymentMethod,
       couponCode: validated.couponCode,
     });

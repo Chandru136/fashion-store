@@ -40,13 +40,44 @@ const initialForm: FormState = {
   isDefault: false,
 };
 
-export default function AddAddressForm() {
-  const [open, setOpen] = useState(false);
+type LocationOption = { name: string; code: string };
+
+export default function AddAddressForm({ returnTo, initiallyOpen = false }: { returnTo?: string; initiallyOpen?: boolean }) {
+  const [open, setOpen] = useState(initiallyOpen);
+  const [states, setStates] = useState<LocationOption[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState<FormState>(initialForm);
   const router = useRouter();
+
+  React.useEffect(() => {
+    fetch("/api/locations/india")
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((data: { states: LocationOption[] }) => setStates(data.states))
+      .catch(() => setError("Could not load states. Please refresh and try again."));
+  }, []);
+
+  const handleStateChange = async (stateCode: string) => {
+    const selectedState = states.find((item) => item.code === stateCode);
+    setForm((prev) => ({ ...prev, state: selectedState?.name || "", city: "" }));
+    setFieldErrors((prev) => ({ ...prev, state: undefined, city: undefined }));
+    setCities([]);
+    if (!stateCode) return;
+    setIsLoadingLocations(true);
+    try {
+      const response = await fetch(`/api/locations/india?state=${encodeURIComponent(stateCode)}`);
+      if (!response.ok) throw new Error();
+      const data: { cities: string[] } = await response.json();
+      setCities(data.cities);
+    } catch {
+      setError("Could not load cities. Please try selecting the state again.");
+    } finally {
+      setIsLoadingLocations(false);
+    }
+  };
 
   const handleChange = (field: keyof FormState, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -71,7 +102,8 @@ export default function AddAddressForm() {
         setOpen(false);
         setForm(initialForm);
         setFieldErrors({});
-        router.refresh();
+        if (returnTo === "/checkout") router.push(returnTo);
+        else router.refresh();
       } else {
         setError(res.error);
         if (res.fieldErrors) setFieldErrors(res.fieldErrors as FieldErrors);
@@ -151,22 +183,29 @@ export default function AddAddressForm() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <input
-              placeholder="City"
-              value={form.city}
-              onChange={(e) => handleChange("city", e.target.value)}
-              className={inputClass("city")}
-            />
-            {fieldErrors.city && <p className="text-red-600 mt-1">{fieldErrors.city}</p>}
+            <select
+              aria-label="State"
+              value={states.find((item) => item.name === form.state)?.code || ""}
+              onChange={(e) => handleStateChange(e.target.value)}
+              className={inputClass("state")}
+            >
+              <option value="">Select state</option>
+              {states.map((state) => <option key={state.code} value={state.code}>{state.name}</option>)}
+            </select>
+            {fieldErrors.state && <p className="text-red-600 mt-1">{fieldErrors.state}</p>}
           </div>
           <div>
-            <input
-              placeholder="State"
-              value={form.state}
-              onChange={(e) => handleChange("state", e.target.value)}
-              className={inputClass("state")}
-            />
-            {fieldErrors.state && <p className="text-red-600 mt-1">{fieldErrors.state}</p>}
+            <select
+              aria-label="City"
+              value={form.city}
+              disabled={!form.state || isLoadingLocations}
+              onChange={(e) => handleChange("city", e.target.value)}
+              className={inputClass("city")}
+            >
+              <option value="">{isLoadingLocations ? "Loading cities..." : "Select city"}</option>
+              {cities.map((city) => <option key={city} value={city}>{city}</option>)}
+            </select>
+            {fieldErrors.city && <p className="text-red-600 mt-1">{fieldErrors.city}</p>}
           </div>
         </div>
 
