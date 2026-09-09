@@ -9,7 +9,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 export default async function WishlistPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!(await verifySessionToken(sessionCookie?.value))) redirect("/login?callbackUrl=/wishlist");
 
   const items = await getUserWishlistAction();

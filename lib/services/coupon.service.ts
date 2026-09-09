@@ -1,7 +1,8 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
-export async function validateCoupon(code: string, subtotal: number, userId?: string) {
-  const coupon = await prisma.coupon.findUnique({
+export async function validateCoupon(code: string, subtotal: number, userId?: string, db: Prisma.TransactionClient = prisma) {
+  const coupon = await db.coupon.findUnique({
     where: { code: code.toUpperCase() },
   });
 
@@ -28,6 +29,7 @@ export async function validateCoupon(code: string, subtotal: number, userId?: st
       where: {
         userId,
         couponCode: coupon.code,
+        inventoryReleasedAt: null,
       },
     });
 

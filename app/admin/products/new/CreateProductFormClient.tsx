@@ -45,7 +45,7 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
     const autoSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     setSlug(autoSlug);
     if (!sku) {
-      const generatedSku = `ARN-${Math.floor(1000 + Math.random() * 9000)}`;
+      const generatedSku = `SC-${Math.floor(1000 + Math.random() * 9000)}`;
       setSku(generatedSku);
       setVariantSku(`${generatedSku}-VAR`);
     }

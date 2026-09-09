@@ -1,9 +1,19 @@
+import { cookies } from "next/headers";
+import { notFound, redirect } from "next/navigation";
+import { verifySessionToken } from "@/lib/auth";
+import { getOrderById } from "@/lib/services/order.service";
 import React from "react";
 import Link from "next/link";
 import { CheckCircle2, Package, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default async function OrderSuccessPage({ searchParams }: { searchParams: Promise<{ orderId?: string; orderNumber?: string }> }) {
   const sp = await searchParams;
+  const user = await verifySessionToken((await cookies()).get("sudha_collections_session_user")?.value);
+  if (!user) redirect("/login");
+  if (!sp.orderId) notFound();
+  const order = await getOrderById(sp.orderId, user.id);
+  if (!order) notFound();
+  if (order.status === "CANCELLED" || (order.paymentMethod === "ONLINE" && order.paymentStatus !== "PAID")) redirect(`/orders/${order.id}`);
 
   return (
     <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-6">
@@ -18,8 +28,8 @@ export default async function OrderSuccessPage({ searchParams }: { searchParams:
       </div>
 
       <div className="p-5 bg-white rounded-lg border gold-border space-y-2 shadow-sm text-xs">
-        <p className="font-bold text-wine-900 text-sm">Order Reference: {sp.orderNumber || "ARN-10001"}</p>
-        <p className="text-stone-500">We have sent an order confirmation email and SMS updates to your registered phone number.</p>
+        <p className="font-bold text-wine-900 text-sm">Order Reference: {order.orderNumber}</p>
+        <p className="text-stone-500">You can view your payment and delivery status in your order details.</p>
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">

@@ -1,3 +1,5 @@
+import { PaymentManagementControls } from "@/components/payments/PaymentManagementControls";
+import { OrderPaymentControls } from "@/components/payments/OrderPaymentControls";
 import React from "react";
 import { getOrderById } from "@/lib/services/order.service";
 import { cookies } from "next/headers";
@@ -9,7 +11,7 @@ import { verifySessionToken } from "@/lib/auth";
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const p = await params;
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!sessionCookie?.value) redirect("/login");
 
   const user = await verifySessionToken(sessionCookie.value);
@@ -47,6 +49,11 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         )}
       </div>
 
+      {order.paymentMethod === "ONLINE" && order.status === "PENDING" && order.paymentStatus !== "PAID" && <OrderPaymentControls orderId={order.id} />}
+
+      <p className="text-sm">Payment: {order.paymentStatus}{order.cancelReason ? ` ? ${order.cancelReason}` : ""}</p>
+      {order.status === "CANCELLED" && order.paymentStatus === "PAID" && <p>Refund pending. Check back for the confirmed refund status.</p>}
+      <PaymentManagementControls orderId={order.id} canCancel={["PENDING", "CONFIRMED", "PROCESSING", "PACKED"].includes(order.status)} />
       {/* Visual Status Progress Tracker (Prompt #21 requirement) */}
       <div className="p-6 bg-white rounded-xl border gold-border shadow-sm space-y-4">
         <h3 className="font-serif font-bold text-wine-900 text-sm">Fulfillment Progress Tracker</h3>
@@ -112,7 +119,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             {order.discount > 0 && <div className="flex justify-between text-emerald-700"><span>Discount</span><span>-₹{order.discount.toLocaleString("en-IN")}</span></div>}
             <div className="flex justify-between"><span>GST Tax</span><span>₹{order.tax.toLocaleString("en-IN")}</span></div>
             <div className="flex justify-between"><span>Shipping</span><span>{order.shipping === 0 ? "FREE" : `₹${order.shipping}`}</span></div>
-            <div className="flex justify-between pt-2 border-t border-ivory-300 font-bold text-sm text-wine-900"><span>Total Paid</span><span>₹{order.total.toLocaleString("en-IN")}</span></div>
+            <div className="flex justify-between pt-2 border-t border-ivory-300 font-bold text-sm text-wine-900"><span>{order.paymentStatus === "PAID" ? "Total Paid" : "Order Total"}</span><span>₹{order.total.toLocaleString("en-IN")}</span></div>
           </div>
         </div>
       </div>

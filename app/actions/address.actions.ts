@@ -10,7 +10,7 @@ import { City, State } from "country-state-city";
 
 async function requireSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("aarna_session_user")?.value;
+  const token = cookieStore.get("sudha_collections_session_user")?.value;
   const session = await verifySessionToken(token);
   if (!session) throw new Error("Not authenticated");
   return session;

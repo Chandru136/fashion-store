@@ -10,7 +10,7 @@ import { AddToCartSchema, UpdateCartItemSchema } from "@/lib/validations/cart";
 
 async function getSessionIdentifiers() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   const session = await verifySessionToken(sessionCookie?.value);
   const userId = session?.id;
 

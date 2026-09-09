@@ -310,6 +310,12 @@ model Order {
   billingState String
   billingPincode String
   trackingNumber String?
+  checkoutKey   String?       @unique
+  expiresAt     DateTime?
+  cancelledAt   DateTime?
+  cancelReason  String?
+  inventoryReleasedAt DateTime?
+  inventoryCommittedAt DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -345,12 +351,21 @@ model Payment {
   orderId       String
   provider      String        // COD | RAZORPAY | STRIPE | MOCK
   transactionId String?       @unique
+  gatewayOrderId String?      @unique
+  amountPaise   Int?
+  currency      String        @default("INR")
   amount        Float
   status        PaymentStatus @default(PENDING)
   paidAt        DateTime?
+  refundedPaise Int           @default(0)
+  nextReconcileAt DateTime    @default(now())
+  reconcileAttempts Int      @default(0)
+  lastError     String?
   createdAt     DateTime      @default(now())
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  refund PaymentRefund?
 
   @@index([orderId])
 }
@@ -432,4 +447,43 @@ model AuditLog {
 
   @@index([userId])
   @@index([entity])
+}
+
+model PaymentRefund {
+  id String @id @default(cuid())
+  paymentId String @unique
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  idempotencyKey String @unique @default(uuid())
+  gatewayRefundId String? @unique
+  amountPaise Int
+  reason String
+  status String @default("REQUESTED") // REQUESTED | SUBMITTED | PROCESSED | FAILED
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, nextAttemptAt])
+}
+
+model PaymentWebhook {
+  id String @id // Razorpay event ID, or SHA256 of the signed body
+  event String
+  paymentId String?
+  refundId String?
+  status String @default("PENDING") // PENDING | PROCESSED | FAILED
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([status, nextAttemptAt])
+}
+
+model PaymentMaintenance {
+  id String @id
+  lockedUntil DateTime @default(now())
+  lastStartedAt DateTime?
+  lastSucceededAt DateTime?
+  lastError String?
 }

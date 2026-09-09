@@ -7,7 +7,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   return (await verifySessionToken(sessionCookie?.value))?.id ?? null;
 }
 

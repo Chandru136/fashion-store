@@ -28,6 +28,7 @@ export function AdminSidebar() {
     { label: "Categories Tree", href: "/admin/categories", icon: FolderTree },
     { label: "Master Brands", href: "/admin/brands", icon: Award },
     { label: "Inventory Stock", href: "/admin/inventory", icon: Boxes },
+    { label: "Payment operations", href: "/admin/payments", icon: Ticket },
     { label: "Orders & Fulfillment", href: "/admin/orders", icon: ShoppingBag },
     { label: "Customer List", href: "/admin/customers", icon: Users },
     { label: "Promo Coupons", href: "/admin/coupons", icon: Ticket },

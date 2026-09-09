@@ -8,7 +8,7 @@ import { verifySessionToken } from "@/lib/auth";
 export default async function ProfilePage() {
 
   const cookieStore = await cookies();
-  const token = cookieStore.get("aarna_session_user")?.value;
+  const token = cookieStore.get("sudha_collections_session_user")?.value;
   const user = await verifySessionToken(token);
   if (!user) redirect("/login?callbackUrl=/profile");
 

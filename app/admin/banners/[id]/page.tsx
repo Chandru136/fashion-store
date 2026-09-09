@@ -9,7 +9,7 @@ export default async function EditBannerPage({ params }: { params: Promise<{ id:
   const { id } = await params;
 
   const cookieStore = await cookies();
-  const token = cookieStore.get("aarna_session_user")?.value;
+  const token = cookieStore.get("sudha_collections_session_user")?.value;
   const session = await verifySessionToken(token);
 
   if (!session || session.role === "CUSTOMER") {

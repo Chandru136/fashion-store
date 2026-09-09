@@ -8,7 +8,7 @@ import { prisma } from "@/lib/db";
 
 export default async function CheckoutPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   const user = await verifySessionToken(sessionCookie?.value);
 
   if (!user) {

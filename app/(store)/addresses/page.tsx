@@ -11,7 +11,7 @@ export default async function AddressesPage({
   searchParams: Promise<{ returnTo?: string; add?: string }>;
 }) {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/addresses");
 
   const addresses = await getAddresses();

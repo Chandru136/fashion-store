@@ -1,3 +1,4 @@
+import { PaymentManagementControls } from "@/components/payments/PaymentManagementControls";
 import React from "react";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -40,6 +41,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
       {/* Admin Status Updater Widget */}
       <AdminOrderStatusUpdaterClient orderId={order.id} currentStatus={order.status} currentTracking={order.trackingNumber || ""} />
+
+      <PaymentManagementControls admin orderId={order.id} canCancel={["PENDING", "CONFIRMED", "PROCESSING", "PACKED"].includes(order.status)} canRefund={["CANCELLED", "RETURNED"].includes(order.status) && order.paymentStatus === "PAID"} />
 
       {/* Order Summary & Customer Info */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">

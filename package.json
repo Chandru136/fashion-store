@@ -9,7 +9,12 @@
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "test:payments": "node --import tsx --test tests/payments.test.ts",
+    "test:payments:integration": "node --env-file=.env scripts/test-payment-db.cjs",
+    "payment:check": "node scripts/check-razorpay.mjs",
+    "payments:worker": "node --env-file-if-exists=.env --import tsx scripts/payment-worker.ts",
+    "payments:recover": "node --env-file-if-exists=.env --import tsx scripts/payment-worker.ts --once"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

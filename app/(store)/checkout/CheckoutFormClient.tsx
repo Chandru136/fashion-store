@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Truck, CreditCard, Banknote, Lock, MapPin, Plus } from "lucide-react";
+import { openOrderPayment } from "@/lib/payments/checkout.client";
 import { createOrderAction } from "@/app/actions/order.actions";
 
 type SavedAddress = {
@@ -28,25 +29,43 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const router = useRouter();
+  const checkoutKey = useRef<string | null>(null);
+  const submitting = useRef(false);
+  const pendingOrder = useRef<string | null>(null);
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
     setIsSubmitting(true);
     setErrorMsg(null);
-
-    const res = await createOrderAction({
-      shippingAddressId,
-      billingAddressId: billingSameAsShipping ? undefined : billingAddressId,
-      paymentMethod,
-      couponCode: couponCode || undefined,
-    });
-
-    setIsSubmitting(false);
-
-    if (res.success) {
-      router.push(`/order-success?orderId=${res.orderId}&orderNumber=${res.orderNumber}`);
-    } else {
-      setErrorMsg(res.error || "Order placement failed");
+    try {
+      if (pendingOrder.current) {
+        const paid = await openOrderPayment(pendingOrder.current);
+        router.push(paid ? `/order-success?orderId=${pendingOrder.current}` : `/orders/${pendingOrder.current}`);
+        return;
+      }
+      checkoutKey.current ||= crypto.randomUUID();
+      const res = await createOrderAction({
+        checkoutKey: checkoutKey.current,
+        shippingAddressId,
+        billingAddressId: billingSameAsShipping ? undefined : billingAddressId,
+        paymentMethod,
+        couponCode: couponCode || undefined,
+      });
+      if (!res.success || !res.orderId) throw new Error(res.error || "Order placement failed");
+      if (res.paymentMethod === "ONLINE") {
+        pendingOrder.current = res.orderId;
+        const paid = await openOrderPayment(res.orderId);
+        router.push(paid ? `/order-success?orderId=${res.orderId}` : `/orders/${res.orderId}`);
+      } else {
+        router.push(`/order-success?orderId=${res.orderId}`);
+      }
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : "Order placement failed. Please retry.");
+    } finally {
+      submitting.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -113,6 +132,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
                 <input
                   type="radio"
                   name="payment"
+                  disabled={isSubmitting}
                   checked={paymentMethod === "COD"}
                   onChange={() => setPaymentMethod("COD")}
                   className="w-4 h-4 text-gold-600"
@@ -126,21 +146,21 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
               </div>
             </label>
 
-            <label className="flex items-center justify-between p-4 rounded-lg border border-stone-200 bg-stone-50 opacity-60 cursor-not-allowed">
+            <label className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === "ONLINE" ? "border-gold-500 bg-ivory-50 shadow-sm" : "border-stone-200"}`}>
               <div className="flex items-center gap-3">
                 <input
                   type="radio"
                   name="payment"
                   checked={paymentMethod === "ONLINE"}
-                  disabled
-                  onChange={() => undefined}
+                  disabled={isSubmitting}
+                  onChange={() => setPaymentMethod("ONLINE")}
                   className="w-4 h-4 text-gold-600"
                 />
                 <div>
                   <p className="font-bold text-xs text-wine-900 flex items-center gap-1.5">
-                    <CreditCard className="w-4 h-4 text-wine-800" /> Online Payment (Coming Soon)
+                    <CreditCard className="w-4 h-4 text-wine-800" /> Online Payment (Razorpay)
                   </p>
-                  <p className="text-[11px] text-stone-500">A verified payment gateway must be connected before this option can be used.</p>
+                  <p className="text-[11px] text-stone-500">Pay securely using UPI, cards, netbanking or wallets.</p>
                 </div>
               </div>
             </label>
@@ -150,6 +170,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
         {errorMsg && (
           <div className="p-4 bg-red-50 text-red-700 text-xs font-bold rounded border border-red-200">
             ⚠ {errorMsg}
+            {pendingOrder.current && <Link href={`/orders/${pendingOrder.current}`} className="block mt-2 underline">View order and retry payment</Link>}
           </div>
         )}
       </div>
@@ -198,7 +219,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
             disabled={isSubmitting || addresses.length === 0}
             className="w-full py-4 wine-gradient-bg text-gold-300 font-bold text-xs uppercase tracking-widest rounded gold-border shadow-xl hover:brightness-110 transition-all flex items-center justify-center gap-2"
           >
-            {isSubmitting ? "Placing Order..." : "Place Order"}
+            {isSubmitting ? "Please wait..." : paymentMethod === "ONLINE" ? "Pay Securely" : "Place Order"}
           </button>
         </div>
       </div>

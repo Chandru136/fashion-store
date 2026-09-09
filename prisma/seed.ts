@@ -344,7 +344,7 @@ async function main() {
     const color = colors[i % colors.length];
     const name = `${template.title} - ${color} Edition ${Math.floor(i / 14) + 1}`;
     const slug = `${template.catSlug}-${color.toLowerCase().replace(/\s+/g, "-")}-${i + 1}`;
-    const sku = `ARN-2026-${1000 + i}`;
+    const sku = `SC-2026-${1000 + i}`;
 
     const prod = await prisma.product.create({
       data: {
@@ -504,7 +504,7 @@ async function main() {
           create: [
             {
               provider: i % 2 === 0 ? "MOCK_ONLINE" : "COD",
-              transactionId: `TXN-ARN-${90000 + i}`,
+              transactionId: `TXN-SC-${90000 + i}`,
               amount: total,
               status: status === OrderStatus.DELIVERED || status === OrderStatus.SHIPPED ? PaymentStatus.PAID : PaymentStatus.PENDING,
               paidAt: status === OrderStatus.DELIVERED ? new Date() : null,

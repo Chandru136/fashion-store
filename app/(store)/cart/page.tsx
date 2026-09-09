@@ -8,7 +8,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 export default async function CartPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("aarna_session_user");
+  const sessionCookie = cookieStore.get("sudha_collections_session_user");
   const userId = (await verifySessionToken(sessionCookie?.value))?.id;
 
   const sessionId = cookieStore.get("sudha_collections_cart_session")?.value;

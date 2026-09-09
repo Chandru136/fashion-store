@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.redirect(new URL("/profile", request.url));
 
-    response.cookies.set("aarna_session_user", token, {
+    response.cookies.set("sudha_collections_session_user", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

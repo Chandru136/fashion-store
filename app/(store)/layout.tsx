@@ -6,7 +6,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 export default async function StorefrontLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const token = cookieStore.get("aarna_session_user")?.value;
+  const token = cookieStore.get("sudha_collections_session_user")?.value;
 
   // Verifies the signature — an edited/forged cookie value now resolves to
   // null instead of being trusted, unlike the old JSON.parse() approach.
