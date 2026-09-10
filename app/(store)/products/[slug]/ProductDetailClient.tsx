@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowRight, Check, MapPin, Sparkles } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowRight, Check, MapPin, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import { addToCartAction } from "@/app/actions/cart.actions";
 import { toggleWishlistAction } from "@/app/actions/wishlist.actions";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,12 @@ import { useRouter } from "next/navigation";
 export function ProductDetailClient({ product }: { product: any }) {
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const moveImage = (direction: number) => {
+    if (product.images.length > 1) {
+      setSelectedImageIndex((index) => (index + direction + product.images.length) % product.images.length);
+    }
+  };
   const [pincode, setPincode] = useState("");
   const [pincodeMessage, setPincodeMessage] = useState<string | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -56,12 +62,40 @@ export function ProductDetailClient({ product }: { product: any }) {
       {/* Left Column: Image Gallery */}
       <div className="lg:col-span-7 space-y-4">
         {/* Main Display Image */}
-        <div className="relative aspect-[3/4] bg-stone-100 rounded-xl overflow-hidden border gold-border shadow-lg">
-          <img
-            src={product.images[selectedImageIndex]?.url || "/images/placeholder.jpg"}
-            alt={product.name}
-            className="w-full h-full object-cover transition-all duration-300"
-          />
+        <div
+          className="relative aspect-[3/4] bg-stone-100 rounded-xl overflow-hidden border gold-border shadow-lg touch-pan-y"
+          role="region"
+          aria-label="Product image gallery"
+          onTouchStart={(event) => {
+            touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+          }}
+          onTouchCancel={() => { touchStart.current = null; }}
+          onTouchEnd={(event) => {
+            const start = touchStart.current;
+            touchStart.current = null;
+            if (!start) return;
+            const dx = event.changedTouches[0].clientX - start.x;
+            const dy = event.changedTouches[0].clientY - start.y;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) moveImage(dx < 0 ? 1 : -1);
+          }}
+        >
+          <div
+            className="flex h-full transition-transform duration-300 ease-out motion-reduce:transition-none"
+            style={{ transform: `translateX(-${selectedImageIndex * 100}%)` }}
+          >
+            {product.images.length ? product.images.map((img: { id: string; url: string; altText?: string }, index: number) => (
+              <img key={img.id} src={img.url} alt={img.altText || product.name} aria-hidden={index !== selectedImageIndex} draggable={false} className="w-full h-full shrink-0 object-cover" />
+            )) : (
+              <img src="/images/placeholder.jpg" alt={product.name} className="w-full h-full object-cover" />
+            )}
+          </div>
+          {product.images.length > 1 && (
+            <>
+              <button type="button" onClick={() => moveImage(-1)} aria-label="Previous product image" className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-wine-900 shadow hover:bg-white"><ChevronLeft className="h-5 w-5" /></button>
+              <button type="button" onClick={() => moveImage(1)} aria-label="Next product image" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-wine-900 shadow hover:bg-white"><ChevronRight className="h-5 w-5" /></button>
+              <span aria-live="polite" className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-xs text-wine-900">{selectedImageIndex + 1} / {product.images.length}</span>
+            </>
+          )}
           {product.discountPercent > 0 && (
             <span className="absolute top-4 left-4 bg-red-700 text-white font-bold text-xs px-3 py-1 rounded shadow uppercase tracking-wider">
               {product.discountPercent}% OFF
@@ -74,6 +108,9 @@ export function ProductDetailClient({ product }: { product: any }) {
           {product.images.map((img: any, idx: number) => (
             <button
               key={img.id}
+              type="button"
+              aria-label={`View product image ${idx + 1}`}
+              aria-pressed={idx === selectedImageIndex}
               onClick={() => setSelectedImageIndex(idx)}
               className={`w-20 h-24 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 bg-stone-100 ${
                 idx === selectedImageIndex ? "border-gold-500 shadow-md scale-105" : "border-stone-200 opacity-70 hover:opacity-100"
