@@ -26,7 +26,7 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
   const [pattern, setPattern] = useState("Traditional Zari Border");
   const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800");
   const [imageSource, setImageSource] = useState<"url" | "file">("url");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [color, setColor] = useState("Royal Red");
   const [size, setSize] = useState("Free Size");
   const [variantSku, setVariantSku] = useState("");
@@ -57,23 +57,34 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
     setErrorMsg(null);
 
     try {
-      let productImageUrl = imageUrl.trim();
+      let productImageUrls = imageUrl.split(/\r?\n/).map((url) => url.trim()).filter(Boolean);
 
       if (imageSource === "file") {
-        if (!imageFile) throw new Error("Choose an image file to upload.");
-
-        const uploadData = new FormData();
-        uploadData.append("image", imageFile);
-        const uploadResponse = await fetch("/api/admin/product-images", {
-          method: "POST",
-          body: uploadData,
-        });
-        const uploadResult = await uploadResponse.json();
-
-        if (!uploadResponse.ok || !uploadResult.url) {
-          throw new Error(uploadResult.error || "Failed to upload the product image.");
+        if (!imageFiles.length) throw new Error("Choose at least one image file to upload.");
+        for (const file of imageFiles) {
+          if (!["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"].includes(file.type)) {
+            throw new Error(`${file.name}: Only JPEG, PNG, WebP, GIF and AVIF images are allowed.`);
+          }
+          if (file.size === 0 || file.size > 5 * 1024 * 1024) {
+            throw new Error(`${file.name}: Each image must be non-empty and no larger than 5 MB.`);
+          }
         }
-        productImageUrl = uploadResult.url;
+
+        productImageUrls = [];
+        for (const imageFile of imageFiles) {
+          const uploadData = new FormData();
+          uploadData.append("image", imageFile);
+          const uploadResponse = await fetch("/api/admin/product-images", {
+            method: "POST",
+            body: uploadData,
+          });
+          const uploadResult = await uploadResponse.json();
+
+          if (!uploadResponse.ok || !uploadResult.url) {
+            throw new Error(uploadResult.error || `Failed to upload ${imageFile.name}.`);
+          }
+          productImageUrls.push(uploadResult.url);
+        }
       }
 
       const res = await createProductAction({
@@ -91,9 +102,9 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
       occasion,
       pattern,
       status, featured, bestseller, newArrival,
-      images: [
-        { url: productImageUrl, altText: name, isPrimary: true, sortOrder: 1 },
-      ],
+      images: productImageUrls.map((url, index) => ({
+        url, altText: name, isPrimary: index === 0, sortOrder: index + 1,
+      })),
       variants: [
         {
           sku: variantSku,
@@ -218,36 +229,49 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
           <label className="font-bold text-stone-700 block mb-1">Short Description</label><input value={shortDescription} onChange={(e)=>setShortDescription(e.target.value)} maxLength={250} className="w-full px-3 py-2 border border-stone-300 rounded" />
         </div>
         <div className="sm:col-span-2">
-          <span className="font-bold text-stone-700 block mb-2">Product Image</span>
+          <span className="font-bold text-stone-700 block mb-2">Product Images</span>
           <div className="mb-3 flex flex-wrap gap-5">
             <label className="flex items-center gap-2 font-semibold">
               <input type="radio" name="imageSource" checked={imageSource === "url"} onChange={() => setImageSource("url")} />
-              Paste image URL
+              Paste image URLs (1 or more images)
             </label>
             <label className="flex items-center gap-2 font-semibold">
               <input type="radio" name="imageSource" checked={imageSource === "file"} onChange={() => setImageSource("file")} />
-              Upload from device
+              Upload from device (1 or more images)
             </label>
           </div>
           {imageSource === "url" ? (
-            <input
-              type="url"
-              required
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/product-image.jpg"
-              className="w-full px-3 py-2 border border-stone-300 rounded font-mono"
-            />
+            <>
+              <textarea
+                required
+                rows={3}
+                aria-label="Product image URLs"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/product-image.jpg"
+                className="w-full px-3 py-2 border border-stone-300 rounded font-mono"
+              />
+              <p className="mt-1 text-stone-500">You can add 1 or more image URLs. Enter each URL on a separate line. The first image is the cover image.</p>
+            </>
           ) : (
             <>
               <input
                 type="file"
                 required
+                multiple
+                disabled={isSubmitting}
                 accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-                onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                onChange={(e) => setImageFiles(Array.from(e.target.files || []))}
                 className="w-full rounded border border-stone-300 px-3 py-2 file:mr-3 file:rounded file:border-0 file:bg-wine-900 file:px-3 file:py-2 file:text-xs file:font-bold file:text-gold-300"
               />
-              <p className="mt-1 text-stone-500">JPEG, PNG, WebP, GIF or AVIF; maximum 5 MB. Works with phone, tablet and computer file pickers.</p>
+              <p className="mt-1 text-stone-500">You can upload 1 or more images (including 2 or more). JPEG, PNG, WebP, GIF or AVIF; maximum 5 MB per image. The first image is the cover image.</p>
+              {imageFiles.length > 0 && (
+                <ol className="mt-2 list-inside list-decimal text-stone-600">
+                  {imageFiles.map((file, index) => (
+                    <li key={`${file.name}-${index}`}>{file.name}{index === 0 ? " (Cover image)" : ""}</li>
+                  ))}
+                </ol>
+              )}
             </>
           )}
         </div>
