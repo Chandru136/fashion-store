@@ -1,13 +1,25 @@
 import { z } from "zod";
 
+// Accepts either a full URL (https://...) or a relative path (/uploads/...),
+// since uploaded images come back from the upload endpoint as relative paths
+// while pasted images are typically full URLs.
+const imagePathSchema = z
+  .string()
+  .min(1, "Image is required")
+  .refine(
+    (val) => /^https?:\/\//.test(val) || val.startsWith("/"),
+    "Enter a valid image URL or upload a file"
+  );
+
 export const BannerSchema = z.object({
-  title: z.string().min(2, "Title is required"),
+  title: z.string().optional().default(""),
   subtitle: z.string().optional(),
-  desktopImage: z.string().url("Enter a valid image URL"),
-  mobileImage: z.string().url("Enter a valid image URL").optional().or(z.literal("")),
+  desktopImage: imagePathSchema,
+  mobileImage: imagePathSchema.optional().or(z.literal("")),
   buttonText: z.string().optional(),
   buttonUrl: z.string().optional(),
-  startDate: z.string().optional(), // datetime-local input value, parsed to Date in the action
+  placement: z.enum(["HERO", "PROMO"]).default("HERO"),
+  startDate: z.string().optional(),
   endDate: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
   displayOrder: z.coerce.number().int().default(0),

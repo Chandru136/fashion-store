@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Truck, CreditCard, Banknote, Lock, MapPin, Plus } from "lucide-react";
 import { openOrderPayment } from "@/lib/payments/checkout.client";
 import { createOrderAction } from "@/app/actions/order.actions";
+import { Loader } from "@/components/common/Loader";
 
 type SavedAddress = {
   id: string;
@@ -219,7 +220,16 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
             disabled={isSubmitting || addresses.length === 0}
             className="w-full py-4 wine-gradient-bg text-gold-300 font-bold text-xs uppercase tracking-widest rounded gold-border shadow-xl hover:brightness-110 transition-all flex items-center justify-center gap-2"
           >
-            {isSubmitting ? "Please wait..." : paymentMethod === "ONLINE" ? "Pay Securely" : "Place Order"}
+            {isSubmitting ? (
+              <>
+                <Loader size="xs" color="gold" />
+                <span>{paymentMethod === "ONLINE" ? "Opening Payment Gateway..." : "Securing Your Order..."}</span>
+              </>
+            ) : paymentMethod === "ONLINE" ? (
+              "Pay Securely"
+            ) : (
+              "Place Order"
+            )}
           </button>
         </div>
       </div>

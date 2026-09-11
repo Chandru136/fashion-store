@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, ShoppingBag, Eye, Star, Sparkles, Check } from "lucide-react";
 import { addToCartAction } from "@/app/actions/cart.actions";
 import { toggleWishlistAction } from "@/app/actions/wishlist.actions";
+import { Loader } from "@/components/common/Loader";
 
 export interface ProductCardProps {
   id: string;
@@ -44,14 +45,21 @@ export function ProductCard({
   initialWishlisted = false,
 }: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(initialWishlisted);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [addedSuccess, setAddedSuccess] = useState(false);
 
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const res = await toggleWishlistAction(id);
-    if (res.success) setIsWishlisted(Boolean(res.isWishlisted));
+    if (isWishlistLoading) return;
+    setIsWishlistLoading(true);
+    try {
+      const res = await toggleWishlistAction(id);
+      if (res.success) setIsWishlisted(Boolean(res.isWishlisted));
+    } finally {
+      setIsWishlistLoading(false);
+    }
   };
 
   const handleAddToCart = async (e: React.MouseEvent) => {
@@ -110,10 +118,15 @@ export function ProductCard({
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}
+          disabled={isWishlistLoading}
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-wine-900 hover:bg-white hover:text-red-600 transition-all shadow-md z-10"
-          title="Save to Wishlist"
+          title={isWishlistLoading ? "Updating Wishlist..." : isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
         >
-          <Heart className={`w-4 h-4 ${isWishlisted ? "fill-red-600 text-red-600" : ""}`} />
+          {isWishlistLoading ? (
+            <Loader size="xs" color="wine" />
+          ) : (
+            <Heart className={`w-4 h-4 ${isWishlisted ? "fill-red-600 text-red-600" : ""}`} />
+          )}
         </button>
 
         {/* Quick View & Add to Bag Floating Action */}
@@ -171,9 +184,15 @@ export function ProductCard({
                 ? "bg-emerald-600 text-white"
                 : "wine-gradient-bg text-gold-300 hover:brightness-110 gold-border"
             }`}
-            title="Add to Bag"
+            title={isAdding ? "Adding to Bag..." : addedSuccess ? "Added to Bag" : "Add to Bag"}
           >
-            {addedSuccess ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+            {isAdding ? (
+              <Loader size="xs" color="gold" />
+            ) : addedSuccess ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <ShoppingBag className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>

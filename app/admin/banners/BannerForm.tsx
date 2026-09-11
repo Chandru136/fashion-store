@@ -17,6 +17,7 @@ type FormState = {
   mobileImage: string;
   buttonText: string;
   buttonUrl: string;
+  placement: "HERO" | "PROMO";
   startDate: string;
   endDate: string;
   status: "ACTIVE" | "INACTIVE";
@@ -30,6 +31,20 @@ function toDatetimeLocal(value?: string | Date | null): string {
   return d.toISOString().slice(0, 16);
 }
 
+async function uploadImage(file: File): Promise<string> {
+  const uploadData = new FormData();
+  uploadData.append("image", file);
+  const res = await fetch("/api/admin/product-images", {
+    method: "POST",
+    body: uploadData,
+  });
+  const result = await res.json();
+  if (!res.ok || !result.url) {
+    throw new Error(result.error || "Failed to upload image.");
+  }
+  return result.url;
+}
+
 export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
   const router = useRouter();
   const isEditing = !!bannerId;
@@ -41,11 +56,18 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
     mobileImage: initialData?.mobileImage || "",
     buttonText: initialData?.buttonText || "Shop Collection",
     buttonUrl: initialData?.buttonUrl || "/products",
+    placement: (initialData?.placement as "HERO" | "PROMO") || "HERO",
     startDate: toDatetimeLocal(initialData?.startDate as any),
     endDate: toDatetimeLocal(initialData?.endDate as any),
     status: (initialData?.status as "ACTIVE" | "INACTIVE") || "ACTIVE",
     displayOrder: String(initialData?.displayOrder ?? 0),
   });
+
+  // Separate source toggle + selected file per image field, same pattern as the product form.
+  const [desktopImageSource, setDesktopImageSource] = useState<"url" | "file">("url");
+  const [desktopImageFile, setDesktopImageFile] = useState<File | null>(null);
+  const [mobileImageSource, setMobileImageSource] = useState<"url" | "file">("url");
+  const [mobileImageFile, setMobileImageFile] = useState<File | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof BannerInput, string>>>({});
@@ -61,28 +83,46 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
     setError(null);
     setIsLoading(true);
 
-    const payload: BannerInput = {
-      title: form.title,
-      subtitle: form.subtitle || undefined,
-      desktopImage: form.desktopImage,
-      mobileImage: form.mobileImage || undefined,
-      buttonText: form.buttonText || undefined,
-      buttonUrl: form.buttonUrl || undefined,
-      startDate: form.startDate || undefined,
-      endDate: form.endDate || undefined,
-      status: form.status,
-      displayOrder: Number(form.displayOrder) || 0,
-    };
+    try {
+      let desktopImageUrl = form.desktopImage.trim();
+      let mobileImageUrl = form.mobileImage.trim();
 
-    const res = isEditing ? await updateBanner(bannerId!, payload) : await createBanner(payload);
-    setIsLoading(false);
+      if (desktopImageSource === "file") {
+        if (!desktopImageFile) throw new Error("Choose a desktop image file to upload.");
+        desktopImageUrl = await uploadImage(desktopImageFile);
+      }
 
-    if (res.success) {
-      router.push("/admin/banners");
-      router.refresh();
-    } else {
-      setError(res.error);
-      if (res.fieldErrors) setFieldErrors(res.fieldErrors);
+      if (mobileImageSource === "file" && mobileImageFile) {
+        mobileImageUrl = await uploadImage(mobileImageFile);
+      }
+
+      const payload: BannerInput = {
+        title: form.title,
+        subtitle: form.subtitle || undefined,
+        desktopImage: desktopImageUrl,
+        mobileImage: mobileImageUrl || undefined,
+        buttonText: form.buttonText || undefined,
+        buttonUrl: form.buttonUrl || undefined,
+        placement: form.placement,
+        startDate: form.startDate || undefined,
+        endDate: form.endDate || undefined,
+        status: form.status,
+        displayOrder: Number(form.displayOrder) || 0,
+      };
+
+      const res = isEditing ? await updateBanner(bannerId!, payload) : await createBanner(payload);
+
+      if (res.success) {
+        router.push("/admin/banners");
+        router.refresh();
+      } else {
+        setError(res.error);
+        if (res.fieldErrors) setFieldErrors(res.fieldErrors);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,7 +140,7 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
       )}
 
       <div>
-        <label className="text-sm font-semibold text-stone-700 block mb-1">Title *</label>
+        <label className="text-sm font-semibold text-stone-700 block mb-1">Title</label>
         <input
           value={form.title}
           onChange={(e) => handleChange("title", e.target.value)}
@@ -121,33 +161,135 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
       </div>
 
       <div>
-        <label className="text-sm font-semibold text-stone-700 block mb-1">Desktop Image URL *</label>
-        <input
-          value={form.desktopImage}
-          onChange={(e) => handleChange("desktopImage", e.target.value)}
-          className={inputClass("desktopImage")}
-          placeholder="https://..."
-        />
-        {fieldErrors.desktopImage && <p className="text-red-600 text-xs mt-1">{fieldErrors.desktopImage}</p>}
-        {form.desktopImage && (
-          <img
-            src={form.desktopImage}
-            alt="Preview"
-            className="mt-2 w-full h-40 object-cover rounded border border-stone-200"
-            onError={(e) => (e.currentTarget.style.display = "none")}
-          />
+        <label className="text-sm font-semibold text-stone-700 block mb-1">Placement</label>
+        <select
+          value={form.placement}
+          onChange={(e) => handleChange("placement", e.target.value)}
+          className={inputClass("placement")}
+        >
+          <option value="HERO">Hero Carousel (top of homepage)</option>
+          <option value="PROMO">Promo Banner (below featured collections)</option>
+        </select>
+      </div>
+
+      {/* Desktop Image — URL or file upload */}
+      <div>
+        <span className="text-sm font-semibold text-stone-700 block mb-2">Desktop Image *</span>
+        <div className="mb-2 flex flex-wrap gap-5 text-sm">
+          <label className="flex items-center gap-2 font-medium">
+            <input
+              type="radio"
+              name="desktopImageSource"
+              checked={desktopImageSource === "url"}
+              onChange={() => setDesktopImageSource("url")}
+            />
+            Paste image URL
+          </label>
+          <label className="flex items-center gap-2 font-medium">
+            <input
+              type="radio"
+              name="desktopImageSource"
+              checked={desktopImageSource === "file"}
+              onChange={() => setDesktopImageSource("file")}
+            />
+            Upload from device
+          </label>
+        </div>
+
+        {desktopImageSource === "url" ? (
+          <>
+            <input
+              key="desktop-url-input"
+              value={form.desktopImage}
+              onChange={(e) => handleChange("desktopImage", e.target.value)}
+              className={inputClass("desktopImage")}
+              placeholder="https://..."
+            />
+            {fieldErrors.desktopImage && <p className="text-red-600 text-xs mt-1">{fieldErrors.desktopImage}</p>}
+            {form.desktopImage && (
+              <img
+                src={form.desktopImage}
+                alt="Preview"
+                className="mt-2 w-full h-40 object-cover rounded border border-stone-200"
+                onError={(e) => (e.currentTarget.style.display = "none")}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            <input
+              key="desktop-file-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+              onChange={(e) => setDesktopImageFile(e.target.files?.[0] || null)}
+              className="w-full rounded border border-stone-300 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-wine-900 file:px-3 file:py-2 file:text-xs file:font-bold file:text-gold-300"
+            />
+            <p className="mt-1 text-xs text-stone-500">JPEG, PNG, WebP, GIF or AVIF; maximum 5 MB.</p>
+            {desktopImageFile && (
+              <img
+                src={URL.createObjectURL(desktopImageFile)}
+                alt="Preview"
+                className="mt-2 w-full h-40 object-cover rounded border border-stone-200"
+              />
+            )}
+          </>
         )}
       </div>
 
+      {/* Mobile Image — URL or file upload, optional */}
       <div>
-        <label className="text-sm font-semibold text-stone-700 block mb-1">Mobile Image URL (optional)</label>
-        <input
-          value={form.mobileImage}
-          onChange={(e) => handleChange("mobileImage", e.target.value)}
-          className={inputClass("mobileImage")}
-          placeholder="https://... (falls back to desktop image if left blank)"
-        />
-        {fieldErrors.mobileImage && <p className="text-red-600 text-xs mt-1">{fieldErrors.mobileImage}</p>}
+        <span className="text-sm font-semibold text-stone-700 block mb-2">Mobile Image (optional)</span>
+        <div className="mb-2 flex flex-wrap gap-5 text-sm">
+          <label className="flex items-center gap-2 font-medium">
+            <input
+              type="radio"
+              name="mobileImageSource"
+              checked={mobileImageSource === "url"}
+              onChange={() => setMobileImageSource("url")}
+            />
+            Paste image URL
+          </label>
+          <label className="flex items-center gap-2 font-medium">
+            <input
+              type="radio"
+              name="mobileImageSource"
+              checked={mobileImageSource === "file"}
+              onChange={() => setMobileImageSource("file")}
+            />
+            Upload from device
+          </label>
+        </div>
+
+        {mobileImageSource === "url" ? (
+          <>
+            <input
+              key="mobile-url-input"
+              value={form.mobileImage}
+              onChange={(e) => handleChange("mobileImage", e.target.value)}
+              className={inputClass("mobileImage")}
+              placeholder="https://... (falls back to desktop image if left blank)"
+            />
+            {fieldErrors.mobileImage && <p className="text-red-600 text-xs mt-1">{fieldErrors.mobileImage}</p>}
+          </>
+        ) : (
+          <>
+            <input
+              key="mobile-file-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+              onChange={(e) => setMobileImageFile(e.target.files?.[0] || null)}
+              className="w-full rounded border border-stone-300 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-wine-900 file:px-3 file:py-2 file:text-xs file:font-bold file:text-gold-300"
+            />
+            <p className="mt-1 text-xs text-stone-500">Leave unselected to fall back to the desktop image on mobile.</p>
+            {mobileImageFile && (
+              <img
+                src={URL.createObjectURL(mobileImageFile)}
+                alt="Preview"
+                className="mt-2 w-full h-40 object-cover rounded border border-stone-200"
+              />
+            )}
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-4">

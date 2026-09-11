@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loginUser } from "@/app/actions/auth.actions";
 import { Lock, Mail, ArrowRight } from "lucide-react";
+import { Loader } from "@/components/common/Loader";
 
 interface FieldErrors {
   email?: string;
@@ -136,7 +137,17 @@ function LoginPageInner() {
             disabled={isLoading}
             className="w-full py-3 wine-gradient-bg text-gold-300 font-bold text-xs uppercase tracking-wider rounded gold-border shadow-md hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {isLoading ? "Authenticating..." : "Sign In"} <ArrowRight className="w-4 h-4" />
+            {isLoading ? (
+              <>
+                <Loader size="xs" color="gold" />
+                <span>Authenticating...</span>
+              </>
+            ) : (
+              <>
+                <span>Sign In</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 

@@ -4,31 +4,50 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ShoppingBag, ArrowRight, Trash2, Plus, Minus, Tag, ShieldCheck } from "lucide-react";
 import { updateCartQtyAction, removeCartItemAction, applyCouponAction } from "@/app/actions/cart.actions";
+import { Loader } from "@/components/common/Loader";
 
 export function CartPageClient({ initialCart }: { initialCart: any }) {
   const [cart, setCart] = useState(initialCart);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const handleUpdateQty = async (id: string, qty: number) => {
-    const res = await updateCartQtyAction(id, qty);
-    if (res.success) setCart(res.cart);
+    setUpdatingItemId(id);
+    try {
+      const res = await updateCartQtyAction(id, qty);
+      if (res.success) setCart(res.cart);
+    } finally {
+      setUpdatingItemId(null);
+    }
   };
 
   const handleRemove = async (id: string) => {
-    const res = await removeCartItemAction(id);
-    if (res.success) setCart(res.cart);
+    setUpdatingItemId(id);
+    try {
+      const res = await removeCartItemAction(id);
+      if (res.success) setCart(res.cart);
+    } finally {
+      setUpdatingItemId(null);
+    }
   };
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     setCouponError(null);
-    const res = await applyCouponAction(couponCode, cart?.subtotal || 0);
-    if (res.success) {
-      setAppliedCoupon(res.coupon);
-    } else {
-      setCouponError(res.error);
+    setIsApplyingCoupon(true);
+    try {
+      const res = await applyCouponAction(couponCode, cart?.subtotal || 0);
+      if (res.success) {
+        setAppliedCoupon(res.coupon);
+      } else {
+        setCouponError(res.error);
+      }
+    } finally {
+      setIsApplyingCoupon(false);
     }
   };
 
@@ -73,17 +92,40 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
 
               <div className="flex items-center justify-between mt-3 pt-2 border-t border-stone-100">
                 <div className="flex items-center border border-stone-300 rounded bg-white">
-                  <button onClick={() => handleUpdateQty(item.id, item.quantity - 1)} className="p-1.5 hover:bg-stone-100 text-stone-600">
+                  <button
+                    onClick={() => handleUpdateQty(item.id, item.quantity - 1)}
+                    disabled={updatingItemId === item.id}
+                    className="p-1.5 hover:bg-stone-100 text-stone-600 disabled:opacity-50"
+                  >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="px-3 text-xs font-bold text-wine-900">{item.quantity}</span>
-                  <button onClick={() => handleUpdateQty(item.id, item.quantity + 1)} className="p-1.5 hover:bg-stone-100 text-stone-600">
+                  <span className="px-3 text-xs font-bold text-wine-900 min-w-[2.5rem] text-center inline-flex items-center justify-center">
+                    {updatingItemId === item.id ? (
+                      <Loader size="xs" color="wine" />
+                    ) : (
+                      item.quantity
+                    )}
+                  </span>
+                  <button
+                    onClick={() => handleUpdateQty(item.id, item.quantity + 1)}
+                    disabled={updatingItemId === item.id}
+                    className="p-1.5 hover:bg-stone-100 text-stone-600 disabled:opacity-50"
+                  >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <button onClick={() => handleRemove(item.id)} className="text-stone-400 hover:text-red-600 p-1 transition-colors text-xs flex items-center gap-1">
-                  <Trash2 className="w-4 h-4" /> Remove
+                <button
+                  onClick={() => handleRemove(item.id)}
+                  disabled={updatingItemId === item.id}
+                  className="text-stone-400 hover:text-red-600 p-1 transition-colors text-xs flex items-center gap-1 disabled:opacity-50"
+                >
+                  {updatingItemId === item.id ? (
+                    <Loader size="xs" color="wine" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  <span>Remove</span>
                 </button>
               </div>
             </div>
@@ -106,8 +148,19 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
               placeholder="e.g. ROYALSILK15"
               className="flex-1 px-3 py-2 text-xs border border-stone-300 rounded uppercase font-semibold focus:outline-none focus:border-gold-500"
             />
-            <button type="submit" className="px-4 py-2 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border">
-              Apply
+            <button
+              type="submit"
+              disabled={isApplyingCoupon || !couponCode.trim()}
+              className="px-4 py-2 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border flex items-center gap-1.5 disabled:opacity-60"
+            >
+              {isApplyingCoupon ? (
+                <>
+                  <Loader size="xs" color="gold" />
+                  <span>Applying...</span>
+                </>
+              ) : (
+                "Apply"
+              )}
             </button>
           </form>
           {appliedCoupon && (
@@ -154,9 +207,22 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
 
           <Link
             href="/checkout"
+            onClick={() => {
+              setIsCheckingOut(true);
+              window.dispatchEvent(new CustomEvent("app:loading:start", { detail: { message: "Proceeding to Checkout..." } }));
+            }}
             className="w-full py-3.5 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase tracking-wider flex items-center justify-center gap-2 gold-border shadow-lg hover:brightness-110 transition-all"
           >
-            Proceed to Checkout <ArrowRight className="w-4 h-4" />
+            {isCheckingOut ? (
+              <>
+                <Loader size="xs" color="gold" />
+                <span>Proceeding to Checkout...</span>
+              </>
+            ) : (
+              <>
+                Proceed to Checkout <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </Link>
         </div>
       </div>

@@ -339,3 +339,55 @@ h1, h2, h3, h4, .font-serif-heading {
     padding: 1rem;
   }
 }
+
+/* Sudha Collections Luxury Loader Animations */
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes luxurySpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.gold-progress-bar {
+  background: linear-gradient(90deg, #9A7B1C 0%, #D4AF37 25%, #FFF2B2 50%, #D4AF37 75%, #9A7B1C 100%);
+  background-size: 200% 100%;
+  animation: goldShimmer 2s linear infinite;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.7), 0 0 4px rgba(212, 175, 55, 0.9);
+}
+
+.luxury-spinner {
+  border-radius: 50%;
+  animation: luxurySpin 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+

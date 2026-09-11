@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Banner" ADD COLUMN "placement" TEXT NOT NULL DEFAULT 'HERO';

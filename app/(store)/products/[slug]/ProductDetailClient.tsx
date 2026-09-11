@@ -5,6 +5,7 @@ import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowRight, Ch
 import { addToCartAction } from "@/app/actions/cart.actions";
 import { toggleWishlistAction } from "@/app/actions/wishlist.actions";
 import { useRouter } from "next/navigation";
+import { Loader } from "@/components/common/Loader";
 
 export function ProductDetailClient({ product }: { product: any }) {
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
@@ -12,7 +13,9 @@ export function ProductDetailClient({ product }: { product: any }) {
   const [pincode, setPincode] = useState("");
   const [pincodeMessage, setPincodeMessage] = useState<string | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [isBuying, setIsBuying] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -48,7 +51,16 @@ export function ProductDetailClient({ product }: { product: any }) {
   };
 
   const handleBuyNow = async () => {
-    if (await handleAddToCart()) router.push("/checkout");
+    setIsBuying(true);
+    try {
+      const ok = await handleAddToCart();
+      if (ok) {
+        window.dispatchEvent(new CustomEvent("app:loading:start", { detail: { message: "Proceeding to Checkout..." } }));
+        router.push("/checkout");
+      }
+    } finally {
+      setIsBuying(false);
+    }
   };
 
   return (
@@ -172,14 +184,18 @@ export function ProductDetailClient({ product }: { product: any }) {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={handleAddToCart}
-              disabled={isAdding || availableStock === 0}
+              disabled={isAdding || isBuying || availableStock === 0}
               className={`py-3 px-4 rounded font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md ${
                 addSuccess
                   ? "bg-emerald-700 text-white"
                   : "wine-gradient-bg text-gold-300 gold-border hover:brightness-110"
               }`}
             >
-              {addSuccess ? (
+              {isAdding ? (
+                <>
+                  <Loader size="xs" color="gold" /> Adding to Bag...
+                </>
+              ) : addSuccess ? (
                 <>
                   <Check className="w-4 h-4" /> Added to Bag
                 </>
@@ -192,10 +208,18 @@ export function ProductDetailClient({ product }: { product: any }) {
 
             <button
               onClick={handleBuyNow}
-              disabled={isAdding || availableStock === 0}
+              disabled={isAdding || isBuying || availableStock === 0}
               className="py-3 px-4 gold-gradient-bg text-wine-900 font-bold text-xs uppercase tracking-wider rounded shadow-md hover:brightness-105 transition-all flex items-center justify-center gap-2"
             >
-              Buy Now <ArrowRight className="w-4 h-4" />
+              {isBuying ? (
+                <>
+                  <Loader size="xs" color="wine" /> Preparing Checkout...
+                </>
+              ) : (
+                <>
+                  Buy Now <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </div>
 
@@ -203,14 +227,25 @@ export function ProductDetailClient({ product }: { product: any }) {
 
           <button
             onClick={async () => {
-              const res = await toggleWishlistAction(product.id);
-              if (res.success) setIsWishlisted(Boolean(res.isWishlisted));
-              else setActionError(res.error || "Unable to update your wishlist.");
+              if (isWishlistLoading) return;
+              setIsWishlistLoading(true);
+              try {
+                const res = await toggleWishlistAction(product.id);
+                if (res.success) setIsWishlisted(Boolean(res.isWishlisted));
+                else setActionError(res.error || "Unable to update your wishlist.");
+              } finally {
+                setIsWishlistLoading(false);
+              }
             }}
+            disabled={isWishlistLoading}
             className="w-full py-2.5 bg-white border border-stone-300 text-wine-900 rounded font-semibold text-xs flex items-center justify-center gap-2 hover:border-gold-500 transition-colors"
           >
-            <Heart className={`w-4 h-4 ${isWishlisted ? "fill-red-600 text-red-600" : ""}`} />
-            {isWishlisted ? "Saved in Wishlist" : "Add to Wishlist"}
+            {isWishlistLoading ? (
+              <Loader size="xs" color="wine" />
+            ) : (
+              <Heart className={`w-4 h-4 ${isWishlisted ? "fill-red-600 text-red-600" : ""}`} />
+            )}
+            {isWishlistLoading ? "Updating Wishlist..." : isWishlisted ? "Saved in Wishlist" : "Add to Wishlist"}
           </button>
         </div>
 

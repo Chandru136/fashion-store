@@ -260,7 +260,7 @@ async function main() {
   ];
 
   for (const b of bannerData) {
-    await prisma.banner.create({ data: b });
+    await prisma.banner.create({ data: { ...b, placement: "HERO" } });
   }
 
   // 6. Editorial Collections Setup (6 Main Collections)
@@ -515,9 +515,9 @@ async function main() {
     });
   }
 
-  // 10. Seeding Banners & Collections
-  console.log("🎬 Seeding Banners & Collections...");
-  await prisma.banner.deleteMany({});
+// 10. Seeding PROMO banners (mid-page section) — does NOT touch the
+  // 10 HERO banners created in Step 5.
+  console.log("🎬 Seeding Promo Banners...");
   await prisma.banner.createMany({
     data: [
       {
@@ -527,6 +527,7 @@ async function main() {
         mobileImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800",
         buttonText: "Shop Samudrika",
         buttonUrl: "/category/kanchipuram-bridal-silk",
+        placement: "PROMO",
         status: "ACTIVE",
         displayOrder: 1,
       },
@@ -537,16 +538,18 @@ async function main() {
         mobileImage: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=800",
         buttonText: "Shop Vasundhara",
         buttonUrl: "/category/soft-silk-heritage",
+        placement: "PROMO",
         status: "ACTIVE",
         displayOrder: 2,
       },
       {
-        title: "Pillars of Pothys",
+        title: "Pillars of Sudha Collections",
         subtitle: "Traditional grand designs for weddings and life's golden occasions",
         desktopImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1600",
         mobileImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800",
-        buttonText: "Explore Pillars",
+        buttonText: "Explore Collection",
         buttonUrl: "/category/banarasi-brocade-silk",
+        placement: "PROMO",
         status: "ACTIVE",
         displayOrder: 3,
       },

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { registerUser } from "@/app/actions/auth.actions";
 import { User, Mail, Lock, Phone, ArrowRight, Check, X } from "lucide-react";
+import { Loader } from "@/components/common/Loader";
 
 interface FieldErrors {
   name?: string;
@@ -207,7 +208,17 @@ export default function RegisterPage() {
             disabled={isLoading}
             className="w-full py-3 wine-gradient-bg text-gold-300 font-bold text-xs uppercase tracking-wider rounded gold-border shadow-md hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {isLoading ? "Creating Account..." : "Create Account"} <ArrowRight className="w-4 h-4" />
+            {isLoading ? (
+              <>
+                <Loader size="xs" color="gold" />
+                <span>Creating Account...</span>
+              </>
+            ) : (
+              <>
+                <span>Create Account</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 

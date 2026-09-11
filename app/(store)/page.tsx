@@ -9,11 +9,13 @@ import { ArrowRight, Star, Instagram } from "lucide-react";
 import { Play, Video } from "lucide-react";
 import { SpinToWin } from "@/components/home/SpinToWin";
 import { PromoBannerCarousel } from "@/components/home/PromoBannerCarousel";
+import { getActiveBanners } from "@/app/actions/banner.actions";
 
 export const revalidate = 60; // ISR Revalidation every 60 seconds
 
 export default async function HomePage() {
   const data = await getHomepageData();
+  const promoBanners = await getActiveBanners("PROMO");
 
   return (
     <div className="space-y-0">
@@ -22,13 +24,16 @@ export default async function HomePage() {
 
       <SpinToWin />
 
+      {/* 2. Browse Categories */}
+      <BrowseCategories categories={data.categories} />
+
       {/* 3. Featured Editorial Collections */}
       <FeaturedCollections collections={data.collections} />
 
-      {/* 5. Full-Width Promotional Banner — rotates through 4 landscape
-          images (crossfade) behind the same fixed headline/CTA, Pothys-style:
-          full-bleed, minimal overlay, no boxed card. */}
-      <PromoBannerCarousel />
+      {/* 5. Full-Width Promotional Banner — sourced from admin-managed
+          banners with placement="PROMO". Crossfades between however many
+          active promo banners exist; renders nothing if none are set. */}
+      <PromoBannerCarousel banners={promoBanners} />
 
       {/* 4.5. Motion Lookbook — CSS motion keeps the experience fast without third-party video embeds. */}
       <section className="py-10 sm:py-14 bg-white border-y border-ivory-300">
@@ -112,9 +117,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Shop By Category */}
-      <BrowseCategories categories={data.categories} />
 
       {/* 9. Seasonal discovery links — adds depth without duplicating product catalogue logic. */}
       <section className="max-w-7xl mx-auto px-4 pb-2">

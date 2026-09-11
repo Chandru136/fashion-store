@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Loader } from "@/components/common/Loader";
 
 interface CartItem {
   id: string;
@@ -47,6 +48,8 @@ export function CartDrawer({
 }: CartDrawerProps) {
   const [couponCode, setCouponCode] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+  const [isNavigatingCheckout, setIsNavigatingCheckout] = useState(false);
   const freeShippingThreshold = 2000;
   const progressPercent = Math.min(100, (subtotal / freeShippingThreshold) * 100);
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
@@ -139,26 +142,60 @@ export function CartDrawer({
                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-stone-100">
                       <div className="flex items-center border border-stone-300 rounded bg-white">
                         <button
-                          onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                          className="p-1 hover:bg-stone-100 text-stone-600"
+                          onClick={async () => {
+                            setUpdatingItemId(item.id);
+                            try {
+                              await onUpdateQuantity(item.id, item.quantity - 1);
+                            } finally {
+                              setUpdatingItemId(null);
+                            }
+                          }}
+                          disabled={updatingItemId === item.id}
+                          className="p-1 hover:bg-stone-100 text-stone-600 disabled:opacity-50"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="px-2.5 text-xs font-semibold text-wine-900">{item.quantity}</span>
+                        <span className="px-2.5 text-xs font-semibold text-wine-900 min-w-[2rem] text-center inline-flex items-center justify-center">
+                          {updatingItemId === item.id ? (
+                            <Loader size="xs" color="wine" />
+                          ) : (
+                            item.quantity
+                          )}
+                        </span>
                         <button
-                          onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                          className="p-1 hover:bg-stone-100 text-stone-600"
+                          onClick={async () => {
+                            setUpdatingItemId(item.id);
+                            try {
+                              await onUpdateQuantity(item.id, item.quantity + 1);
+                            } finally {
+                              setUpdatingItemId(null);
+                            }
+                          }}
+                          disabled={updatingItemId === item.id}
+                          className="p-1 hover:bg-stone-100 text-stone-600 disabled:opacity-50"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
 
                       <button
-                        onClick={() => onRemoveItem(item.id)}
-                        className="text-stone-400 hover:text-red-600 p-1 transition-colors"
+                        onClick={async () => {
+                          setUpdatingItemId(item.id);
+                          try {
+                            await onRemoveItem(item.id);
+                          } finally {
+                            setUpdatingItemId(null);
+                          }
+                        }}
+                        disabled={updatingItemId === item.id}
+                        className="text-stone-400 hover:text-red-600 p-1 transition-colors disabled:opacity-50"
                         title="Remove item"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {updatingItemId === item.id ? (
+                          <Loader size="xs" color="wine" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -193,10 +230,22 @@ export function CartDrawer({
 
               <Link
                 href="/checkout"
-                onClick={onClose}
+                onClick={() => {
+                  setIsNavigatingCheckout(true);
+                  window.dispatchEvent(new CustomEvent("app:loading:start", { detail: { message: "Loading Checkout..." } }));
+                  setTimeout(() => onClose(), 200);
+                }}
                 className="w-full py-3 wine-gradient-bg text-gold-300 font-semibold text-xs rounded uppercase tracking-wider flex items-center justify-center gap-2 gold-border shadow-md hover:brightness-110 transition-all"
               >
-                Proceed to Checkout <ArrowRight className="w-4 h-4" />
+                {isNavigatingCheckout ? (
+                  <>
+                    <Loader size="xs" color="gold" /> Proceeding to Checkout...
+                  </>
+                ) : (
+                  <>
+                    Proceed to Checkout <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </Link>
             </div>
           )}

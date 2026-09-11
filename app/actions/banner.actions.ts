@@ -9,7 +9,7 @@ import { ZodError } from "zod";
 
 async function requireAdmin() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("sudha_collections_session_user")?.value;
+  const token = cookieStore.get("aarna_session_user")?.value;
   const session = await verifySessionToken(token);
 
   if (!session || session.role === "CUSTOMER") {
@@ -26,13 +26,22 @@ type ActionResult =
 export async function getAllBanners() {
   await requireAdmin();
   return prisma.banner.findMany({
-    orderBy: [{ displayOrder: "asc" }, { id: "asc" }],
+    orderBy: [{ placement: "asc" }, { displayOrder: "asc" }, { id: "asc" }],
   });
 }
 
 export async function getBanner(id: string) {
   await requireAdmin();
   return prisma.banner.findUnique({ where: { id } });
+}
+
+// Public — no admin check. Used by the homepage to render live banners.
+// Only ever returns ACTIVE banners for the requested placement.
+export async function getActiveBanners(placement: "HERO" | "PROMO") {
+  return prisma.banner.findMany({
+    where: { status: "ACTIVE", placement },
+    orderBy: [{ displayOrder: "asc" }, { id: "asc" }],
+  });
 }
 
 export async function createBanner(input: BannerInput): Promise<ActionResult> {
@@ -48,6 +57,7 @@ export async function createBanner(input: BannerInput): Promise<ActionResult> {
         mobileImage: validated.mobileImage || null,
         buttonText: validated.buttonText || undefined,
         buttonUrl: validated.buttonUrl || undefined,
+        placement: validated.placement,
         startDate: validated.startDate ? new Date(validated.startDate) : null,
         endDate: validated.endDate ? new Date(validated.endDate) : null,
         status: validated.status,
@@ -56,7 +66,7 @@ export async function createBanner(input: BannerInput): Promise<ActionResult> {
     });
 
     revalidatePath("/admin/banners");
-    revalidatePath("/"); // homepage shows these banners
+    revalidatePath("/");
     return { success: true };
   } catch (error) {
     return handleActionError(error);
@@ -77,6 +87,7 @@ export async function updateBanner(id: string, input: BannerInput): Promise<Acti
         mobileImage: validated.mobileImage || null,
         buttonText: validated.buttonText || undefined,
         buttonUrl: validated.buttonUrl || undefined,
+        placement: validated.placement,
         startDate: validated.startDate ? new Date(validated.startDate) : null,
         endDate: validated.endDate ? new Date(validated.endDate) : null,
         status: validated.status,

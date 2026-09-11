@@ -8,7 +8,7 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, ImageOff } from "lucide-react";
 
 export default async function AdminBannersPage() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("sudha_collections_session_user")?.value;
+  const token = cookieStore.get("aarna_session_user")?.value;
   const session = await verifySessionToken(token);
 
   if (!session || session.role === "CUSTOMER") {
@@ -46,6 +46,7 @@ export default async function AdminBannersPage() {
               <tr>
                 <th className="text-left px-4 py-3 font-semibold">Preview</th>
                 <th className="text-left px-4 py-3 font-semibold">Title</th>
+                <th className="text-left px-4 py-3 font-semibold">Placement</th>
                 <th className="text-left px-4 py-3 font-semibold">Order</th>
                 <th className="text-left px-4 py-3 font-semibold">Status</th>
                 <th className="text-left px-4 py-3 font-semibold">Schedule</th>
@@ -65,6 +66,11 @@ export default async function AdminBannersPage() {
                   <td className="px-4 py-3">
                     <p className="font-semibold text-wine-900">{banner.title}</p>
                     {banner.subtitle && <p className="text-xs text-stone-500">{banner.subtitle}</p>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-wine-50 text-wine-800 border border-wine-100">
+                      {banner.placement}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-stone-600">{banner.displayOrder}</td>
                   <td className="px-4 py-3">
@@ -91,7 +97,10 @@ export default async function AdminBannersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      <form action={async () => { "use server"; const result = await toggleBannerStatus(banner.id); if (!result.success) throw new Error(result.error); }}>
+                      <form action={async () => {
+                        "use server";
+                        await toggleBannerStatus(banner.id);
+                      }}>
                         <button
                           type="submit"
                           title={banner.status === "ACTIVE" ? "Deactivate" : "Activate"}
@@ -111,7 +120,7 @@ export default async function AdminBannersPage() {
                       >
                         <Pencil className="w-4 h-4" />
                       </Link>
-                      <form action={async () => { "use server"; const result = await deleteBanner(banner.id); if (!result.success) throw new Error(result.error); }}>
+                      <form action={deleteBanner.bind(null, banner.id)}>
                         <button
                           type="submit"
                           title="Delete"
