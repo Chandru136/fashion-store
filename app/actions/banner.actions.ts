@@ -9,7 +9,9 @@ import { ZodError } from "zod";
 
 async function requireAdmin() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("aarna_session_user")?.value;
+  const token =
+    cookieStore.get("sudha_collections_session_user")?.value ||
+    cookieStore.get("aarna_session_user")?.value;
   const session = await verifySessionToken(token);
 
   if (!session || session.role === "CUSTOMER") {
@@ -55,8 +57,8 @@ export async function createBanner(input: BannerInput): Promise<ActionResult> {
         subtitle: validated.subtitle || null,
         desktopImage: validated.desktopImage,
         mobileImage: validated.mobileImage || null,
-        buttonText: validated.buttonText || undefined,
-        buttonUrl: validated.buttonUrl || undefined,
+        buttonText: validated.buttonText?.trim() || null,
+        buttonUrl: validated.buttonUrl?.trim() || null,
         placement: validated.placement,
         startDate: validated.startDate ? new Date(validated.startDate) : null,
         endDate: validated.endDate ? new Date(validated.endDate) : null,
@@ -85,8 +87,8 @@ export async function updateBanner(id: string, input: BannerInput): Promise<Acti
         subtitle: validated.subtitle || null,
         desktopImage: validated.desktopImage,
         mobileImage: validated.mobileImage || null,
-        buttonText: validated.buttonText || undefined,
-        buttonUrl: validated.buttonUrl || undefined,
+        buttonText: validated.buttonText?.trim() || null,
+        buttonUrl: validated.buttonUrl?.trim() || null,
         placement: validated.placement,
         startDate: validated.startDate ? new Date(validated.startDate) : null,
         endDate: validated.endDate ? new Date(validated.endDate) : null,

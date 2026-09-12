@@ -11,6 +11,8 @@ import {
 } from "@/lib/auth";
 import { RegisterSchema, LoginSchema, RegisterInput, LoginInput } from "@/lib/validations/auth";
 import { cookies } from "next/headers";
+import { sendEmail } from "@/lib/mailer";
+import { welcomeEmailHtml } from "@/lib/email-templates";
 
 const SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days — keep in sync with lib/auth.ts SESSION_DURATION_SECONDS
 
@@ -46,8 +48,17 @@ export async function registerUser(input: RegisterInput): Promise<AuthResult> {
   const sessionUser = { id: newUser.id, name: newUser.name, email: newUser.email, role: newUser.role };
   const token = await createSessionToken(sessionUser);
 
+  // Awaited so the send actually completes before this action returns
+  // (serverless functions can cut off un-awaited work) — but sendEmail
+  // never throws, so an SMTP failure here can't block registration.
+  await sendEmail({
+    to: newUser.email,
+    subject: "Welcome to Sudha Collections",
+    html: welcomeEmailHtml(newUser.name),
+  });
+
   const cookieStore = await cookies();
-  cookieStore.set("sudha_collections_session_user", token, {
+  cookieStore.set("aarna_session_user", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -102,7 +113,7 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
   const token = await createSessionToken(sessionUser);
 
   const cookieStore = await cookies();
-  cookieStore.set("sudha_collections_session_user", token, {
+  cookieStore.set("aarna_session_user", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -115,6 +126,6 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
 
 export async function logoutUser() {
   const cookieStore = await cookies();
-  cookieStore.delete("sudha_collections_session_user");
+  cookieStore.delete("aarna_session_user");
   return { success: true };
 }

@@ -54,8 +54,8 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
     subtitle: initialData?.subtitle || "",
     desktopImage: initialData?.desktopImage || "",
     mobileImage: initialData?.mobileImage || "",
-    buttonText: initialData?.buttonText || "Shop Collection",
-    buttonUrl: initialData?.buttonUrl || "/products",
+    buttonText: initialData?.buttonText ?? "",
+    buttonUrl: initialData?.buttonUrl ?? "",
     placement: (initialData?.placement as "HERO" | "PROMO") || "HERO",
     startDate: toDatetimeLocal(initialData?.startDate as any),
     endDate: toDatetimeLocal(initialData?.endDate as any),
@@ -101,8 +101,8 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
         subtitle: form.subtitle || undefined,
         desktopImage: desktopImageUrl,
         mobileImage: mobileImageUrl || undefined,
-        buttonText: form.buttonText || undefined,
-        buttonUrl: form.buttonUrl || undefined,
+        buttonText: form.buttonText.trim() ? form.buttonText.trim() : null,
+        buttonUrl: form.buttonUrl.trim() ? form.buttonUrl.trim() : null,
         placement: form.placement,
         startDate: form.startDate || undefined,
         endDate: form.endDate || undefined,
@@ -294,19 +294,22 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-semibold text-stone-700 block mb-1">Button Text</label>
+          <label className="text-sm font-semibold text-stone-700 block mb-1">Button Text (optional)</label>
           <input
             value={form.buttonText}
             onChange={(e) => handleChange("buttonText", e.target.value)}
             className={inputClass("buttonText")}
+            placeholder="e.g. Explore Collection (leave blank for no button)"
           />
+          <p className="text-xs text-stone-400 mt-1">Leave blank to hide the button on the banner.</p>
         </div>
         <div>
-          <label className="text-sm font-semibold text-stone-700 block mb-1">Button URL</label>
+          <label className="text-sm font-semibold text-stone-700 block mb-1">Button URL (optional)</label>
           <input
             value={form.buttonUrl}
             onChange={(e) => handleChange("buttonUrl", e.target.value)}
             className={inputClass("buttonUrl")}
+            placeholder="/products"
           />
         </div>
       </div>

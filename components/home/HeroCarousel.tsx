@@ -79,16 +79,18 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                 <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
                   {banner.title}
                 </h1>
-                {banner.buttonText && banner.buttonUrl && (
-                  <div className="pt-2">
-                    <Link
-                      href={banner.buttonUrl}
-                      className="inline-flex items-center gap-2 px-7 py-3 bg-ivory-50 text-wine-900 font-bold text-xs uppercase tracking-widest rounded-sm hover:bg-gold-300 transition-colors"
-                    >
-                      {banner.buttonText}
-                    </Link>
-                  </div>
-                )}
+                {banner.buttonText &&
+                  banner.buttonText.trim().toLowerCase() !== "shop collection" &&
+                  banner.buttonUrl && (
+                    <div className="pt-2">
+                      <Link
+                        href={banner.buttonUrl}
+                        className="inline-flex items-center gap-2 px-7 py-3 bg-ivory-50 text-wine-900 font-bold text-xs uppercase tracking-widest rounded-sm hover:bg-gold-300 transition-colors"
+                      >
+                        {banner.buttonText}
+                      </Link>
+                    </div>
+                  )}
               </div>
             </div>
           </div>

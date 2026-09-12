@@ -8,7 +8,9 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, ImageOff } from "lucide-react";
 
 export default async function AdminBannersPage() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("aarna_session_user")?.value;
+  const token =
+    cookieStore.get("sudha_collections_session_user")?.value ||
+    cookieStore.get("aarna_session_user")?.value;
   const session = await verifySessionToken(token);
 
   if (!session || session.role === "CUSTOMER") {
@@ -120,7 +122,10 @@ export default async function AdminBannersPage() {
                       >
                         <Pencil className="w-4 h-4" />
                       </Link>
-                      <form action={deleteBanner.bind(null, banner.id)}>
+                      <form action={async () => {
+                        "use server";
+                        await deleteBanner(banner.id);
+                      }}>
                         <button
                           type="submit"
                           title="Delete"

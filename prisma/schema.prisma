@@ -410,8 +410,8 @@ model Banner {
   subtitle     String?
   desktopImage String
   mobileImage  String?
-  buttonText   String?   @default("Shop Collection")
-  buttonUrl    String?   @default("/products")
+  buttonText   String?
+  buttonUrl    String?
   placement    String    @default("HERO") // "HERO" | "PROMO"
   startDate    DateTime?
   endDate      DateTime?
