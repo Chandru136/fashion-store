@@ -1,11 +1,13 @@
 "use server";
 
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
+
 import { createOrderFromCart } from "@/lib/services/order.service";
 import { CreateOrderSchema, CreateOrderInput } from "@/lib/validations/order";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { verifySessionToken } from "@/lib/auth";
+import { verifySessionToken, getSessionUser } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
 import { orderConfirmationHtml, orderStatusUpdateHtml, adminNewOrderHtml } from "@/lib/email-templates";
 
@@ -13,9 +15,10 @@ const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
 
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("aarna_session_user")?.value;
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionToken(token);
-  return session?.id ?? null;
+  const user = await getSessionUser(session?.id);
+  return user?.id ?? null;
 }
 
 function formatAddressLine(addr: { addressLine1: string; addressLine2: string | null }): string {
@@ -118,7 +121,7 @@ export async function createOrderAction(input: CreateOrderInput) {
       }
     }
 
-    return { success: true, orderId: order.id, orderNumber: order.orderNumber };
+    return { success: true, orderId: order.id, orderNumber: order.orderNumber, paymentMethod: order.paymentMethod };
   } catch (error: any) {
     return { success: false, error: error.message || "Failed to process order" };
   }

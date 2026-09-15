@@ -15,7 +15,7 @@ export function BrowseCategories({ categories = [] }: { categories: Category[] }
   if (categories.length === 0) return null;
 
   return (
-    <section className="py-10 sm:py-14 bg-white border-b border-ivory-300">
+    <section className="sc-categories py-10 sm:py-14 bg-ivory-50 border-b border-ivory-300">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center max-w-xl mx-auto mb-7 sm:mb-10 space-y-2">
           <span className="text-xs font-bold tracking-[0.2em] text-gold-600 uppercase">

@@ -46,7 +46,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       </div>
 
       {/* Product List Table */}
-      <div className="p-6 bg-white rounded-xl border border-stone-200 shadow-sm space-y-4">
+      <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm space-y-4">
         <div className="flex items-center justify-between gap-4">
           <form className="relative flex-1 max-w-md">
             <input

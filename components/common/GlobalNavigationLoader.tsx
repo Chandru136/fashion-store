@@ -158,7 +158,7 @@ function NavigationLoaderInner() {
 
       {/* Luxury Floating Pill Badge */}
       {showBadge && (
-        <div className="fixed top-5 right-5 pointer-events-auto bg-white/95 backdrop-blur-md rounded-full px-4 py-2 border gold-border shadow-xl flex items-center gap-2.5 animate-fade-in z-[9999]">
+        <div className="fixed top-5 right-5 pointer-events-auto bg-ivory-50/95 backdrop-blur-md rounded-full px-4 py-2 border gold-border shadow-xl flex items-center gap-2.5 animate-fade-in z-[9999]">
           <Loader size="sm" color="gold" />
           <div className="flex flex-col">
             <span className="text-[11px] font-bold text-wine-900 tracking-wide leading-tight">

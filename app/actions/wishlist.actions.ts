@@ -1,5 +1,7 @@
 "use server";
 
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
+
 import { prisma } from "@/lib/db";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
@@ -7,7 +9,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   return (await verifySessionToken(sessionCookie?.value))?.id ?? null;
 }
 

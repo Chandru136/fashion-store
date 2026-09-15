@@ -80,7 +80,7 @@ export default async function ProductListingPage({ searchParams }: ProductPagePr
             <select
               defaultValue={sort}
               name="sort"
-              className="px-3 py-2 bg-white border border-ivory-300 rounded text-xs text-wine-900 font-semibold focus:outline-none focus:border-gold-500 shadow-sm"
+              className="px-3 py-2 bg-ivory-50 border border-ivory-300 rounded text-xs text-wine-900 font-semibold focus:outline-none focus:border-gold-500 shadow-sm"
             >
               <option value="featured">Featured Collection</option>
               <option value="bestseller">Bestseller Priority</option>
@@ -95,7 +95,7 @@ export default async function ProductListingPage({ searchParams }: ProductPagePr
       {/* Main Filter & Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Left Filter Sidebar */}
-        <aside className="space-y-6 bg-white p-5 rounded-lg border gold-border shadow-sm h-fit">
+        <aside className="space-y-6 bg-ivory-50 p-5 rounded-lg border gold-border shadow-sm h-fit">
           <div className="flex items-center justify-between pb-3 border-b border-stone-200">
             <h3 className="font-serif font-bold text-wine-900 text-sm flex items-center gap-1.5">
               <SlidersHorizontal className="w-4 h-4 text-gold-600" /> Filter Selection
@@ -160,7 +160,7 @@ export default async function ProductListingPage({ searchParams }: ProductPagePr
         {/* Right Product Grid */}
         <div className="lg:col-span-3 space-y-8">
           {products.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-lg border gold-border p-8 space-y-4">
+            <div className="text-center py-20 bg-ivory-50 rounded-lg border gold-border p-8 space-y-4">
               <Filter className="w-12 h-12 text-gold-500 mx-auto opacity-50" />
               <h3 className="font-serif text-xl font-semibold text-wine-900">No matching items found</h3>
               <p className="text-xs text-stone-500">Try adjusting your filters or price range to explore more products.</p>
@@ -186,7 +186,7 @@ export default async function ProductListingPage({ searchParams }: ProductPagePr
                   className={`w-9 h-9 rounded font-bold text-xs flex items-center justify-center transition-all ${
                     p === currentPage
                       ? "wine-gradient-bg text-gold-300 gold-border shadow"
-                      : "bg-white border border-stone-200 text-stone-700 hover:border-gold-500"
+                      : "bg-ivory-50 border border-stone-200 text-stone-700 hover:border-gold-500"
                   }`}
                 >
                   {p}

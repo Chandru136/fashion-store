@@ -44,7 +44,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
             className={`px-3 py-1.5 rounded-full border transition-all ${
               (st === "ALL" && !statusFilter) || statusFilter === st
                 ? "wine-gradient-bg text-gold-300 gold-border shadow-sm font-bold"
-                : "bg-white border-stone-300 text-stone-700 hover:border-gold-500"
+                : "bg-ivory-50 border-stone-300 text-stone-700 hover:border-gold-500"
             }`}
           >
             {st}
@@ -53,7 +53,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       </div>
 
       {/* Orders Table */}
-      <div className="p-6 bg-white rounded-xl border border-stone-200 shadow-sm space-y-4">
+      <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm space-y-4">
         <div className="flex items-center justify-between gap-4">
           <form className="relative flex-1 max-w-md">
             <input

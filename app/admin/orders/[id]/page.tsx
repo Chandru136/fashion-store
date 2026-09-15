@@ -46,7 +46,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
 
       {/* Order Summary & Customer Info */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-        <div className="md:col-span-2 p-6 bg-white rounded-xl border border-stone-200 space-y-4 shadow-sm">
+        <div className="md:col-span-2 p-6 bg-ivory-50 rounded-xl border border-stone-200 space-y-4 shadow-sm">
           <h3 className="font-serif font-bold text-wine-900 text-sm border-b border-stone-100 pb-2">Line Items ({order.items.length})</h3>
           <div className="space-y-3">
             {order.items.map((item) => (

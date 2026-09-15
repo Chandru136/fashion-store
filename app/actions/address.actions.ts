@@ -1,5 +1,7 @@
 "use server";
 
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
+
 import { prisma } from "@/lib/db";
 import { cookies } from "next/headers";
 import { verifySessionToken } from "@/lib/auth";
@@ -10,7 +12,7 @@ import { City, State } from "country-state-city";
 
 async function requireSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("sudha_collections_session_user")?.value;
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionToken(token);
   if (!session) throw new Error("Not authenticated");
   return session;

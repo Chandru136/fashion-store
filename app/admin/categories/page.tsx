@@ -20,7 +20,7 @@ export default async function AdminCategoriesPage() {
         </div>
       </div>
 
-      <div className="p-6 bg-white rounded-xl border border-stone-200 shadow-sm">
+      <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>

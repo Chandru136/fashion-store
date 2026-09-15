@@ -1,3 +1,4 @@
+import { SESSION_DURATION_SECONDS } from "./session-config";
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "@/lib/db";
@@ -34,7 +35,6 @@ export interface UserSession {
   role: RoleEnum;
 }
 
-const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7; // 7 days, matches old cookie maxAge
 
 export async function createSessionToken(user: UserSession): Promise<string> {
   return await new SignJWT({ ...user })
@@ -79,7 +79,7 @@ export async function getSessionUser(userId?: string): Promise<UserSession | nul
     select: { id: true, name: true, email: true, role: true, status: true },
   });
 
-  if (!user || user.status === "BLOCKED") return null;
+  if (!user || user.status !== "ACTIVE") return null;
 
   return {
     id: user.id,

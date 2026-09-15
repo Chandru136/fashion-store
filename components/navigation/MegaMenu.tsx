@@ -187,7 +187,7 @@ export function MegaMenu() {
 
               {/* Mega Dropdown Panel */}
               {activeMenu === item.id && (
-                <div className="absolute top-full left-0 w-[780px] bg-white text-stone-800 shadow-2xl rounded-b-lg border border-gold-400/40 p-6 grid grid-cols-4 gap-6 z-50 animate-fade-in">
+                <div className="absolute top-full left-0 w-[780px] bg-ivory-50 text-stone-800 shadow-2xl rounded-b-lg border border-gold-400/40 p-6 grid grid-cols-4 gap-6 z-50 animate-fade-in">
                   {/* Column 1: Subcategories */}
                   <div>
                     <h4 className="font-serif font-bold text-wine-900 text-sm pb-2 border-b border-gold-300/40 uppercase tracking-wide flex items-center gap-1.5">

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { openOrderPayment } from "@/lib/payments/checkout.client";
-import { paymentStatusAction } from "@/app/actions/payment.actions";
+import { paymentStatusAction } from "@/lib/payments/checkout-api.client";
 
 export function OrderPaymentControls({ orderId }: { orderId: string }) {
   const [busy, setBusy] = useState(false);

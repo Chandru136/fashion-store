@@ -1,5 +1,7 @@
 "use server";
 
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
+
 import { prisma } from "@/lib/db";
 import { cookies } from "next/headers";
 import { verifySessionToken } from "@/lib/auth";
@@ -10,8 +12,7 @@ import { ZodError } from "zod";
 async function requireAdmin() {
   const cookieStore = await cookies();
   const token =
-    cookieStore.get("sudha_collections_session_user")?.value ||
-    cookieStore.get("aarna_session_user")?.value;
+    cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionToken(token);
 
   if (!session || session.role === "CUSTOMER") {

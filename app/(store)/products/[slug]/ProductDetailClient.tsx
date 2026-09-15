@@ -103,9 +103,9 @@ export function ProductDetailClient({ product }: { product: any }) {
           </div>
           {product.images.length > 1 && (
             <>
-              <button type="button" onClick={() => moveImage(-1)} aria-label="Previous product image" className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-wine-900 shadow hover:bg-white"><ChevronLeft className="h-5 w-5" /></button>
-              <button type="button" onClick={() => moveImage(1)} aria-label="Next product image" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-wine-900 shadow hover:bg-white"><ChevronRight className="h-5 w-5" /></button>
-              <span aria-live="polite" className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-xs text-wine-900">{selectedImageIndex + 1} / {product.images.length}</span>
+              <button type="button" onClick={() => moveImage(-1)} aria-label="Previous product image" className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-ivory-50/90 p-2 text-wine-900 shadow hover:bg-ivory-50"><ChevronLeft className="h-5 w-5" /></button>
+              <button type="button" onClick={() => moveImage(1)} aria-label="Next product image" className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-ivory-50/90 p-2 text-wine-900 shadow hover:bg-ivory-50"><ChevronRight className="h-5 w-5" /></button>
+              <span aria-live="polite" className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-ivory-50/90 px-3 py-1 text-xs text-wine-900">{selectedImageIndex + 1} / {product.images.length}</span>
             </>
           )}
           {product.discountPercent > 0 && (
@@ -188,7 +188,7 @@ export function ProductDetailClient({ product }: { product: any }) {
                   className={`px-3 py-2 rounded text-xs font-semibold border transition-all ${
                     idx === selectedVariantIndex
                       ? "wine-gradient-bg text-gold-300 gold-border shadow-md"
-                      : "bg-white border-stone-300 text-stone-700 hover:border-gold-500"
+                      : "bg-ivory-50 border-stone-300 text-stone-700 hover:border-gold-500"
                   }`}
                 >
                   {v.color} {v.size ? `(${v.size})` : ""}
@@ -210,7 +210,7 @@ export function ProductDetailClient({ product }: { product: any }) {
 
         {/* Action Buttons */}
         <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between rounded border border-stone-200 bg-white p-3">
+          <div className="flex items-center justify-between rounded border border-stone-200 bg-ivory-50 p-3">
             <span className="text-xs font-bold text-wine-900">Quantity</span>
             <div className="flex items-center rounded border border-stone-300">
               <button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))} className="px-3 py-1.5" aria-label="Decrease quantity">−</button>
@@ -275,7 +275,7 @@ export function ProductDetailClient({ product }: { product: any }) {
               }
             }}
             disabled={isWishlistLoading}
-            className="w-full py-2.5 bg-white border border-stone-300 text-wine-900 rounded font-semibold text-xs flex items-center justify-center gap-2 hover:border-gold-500 transition-colors"
+            className="w-full py-2.5 bg-ivory-50 border border-stone-300 text-wine-900 rounded font-semibold text-xs flex items-center justify-center gap-2 hover:border-gold-500 transition-colors"
           >
             {isWishlistLoading ? (
               <Loader size="xs" color="wine" />
@@ -287,7 +287,7 @@ export function ProductDetailClient({ product }: { product: any }) {
         </div>
 
         {/* Pincode Deliverability Checker */}
-        <div className="p-4 bg-white rounded-lg border border-stone-200 space-y-2">
+        <div className="p-4 bg-ivory-50 rounded-lg border border-stone-200 space-y-2">
           <h4 className="text-xs font-bold text-wine-900 uppercase tracking-wider flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-gold-600" /> Delivery & Serviceability
           </h4>
@@ -300,7 +300,7 @@ export function ProductDetailClient({ product }: { product: any }) {
               placeholder="Enter 6-digit Pincode"
               className="flex-1 px-3 py-1.5 text-xs border border-stone-300 rounded focus:outline-none focus:border-gold-500"
             />
-            <button type="submit" className="px-4 py-1.5 bg-stone-800 text-white font-semibold text-xs rounded hover:bg-wine-900">
+            <button type="submit" className="px-4 py-1.5 bg-wine-800 text-white font-semibold text-xs rounded hover:bg-wine-900">
               Check
             </button>
           </form>

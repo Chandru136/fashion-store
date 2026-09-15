@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import { PaymentManagementControls } from "@/components/payments/PaymentManagementControls";
 import { OrderPaymentControls } from "@/components/payments/OrderPaymentControls";
 import React from "react";
@@ -11,7 +13,7 @@ import { verifySessionToken } from "@/lib/auth";
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const p = await params;
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   if (!sessionCookie?.value) redirect("/login");
 
   const user = await verifySessionToken(sessionCookie.value);
@@ -55,7 +57,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
       {order.status === "CANCELLED" && order.paymentStatus === "PAID" && <p>Refund pending. Check back for the confirmed refund status.</p>}
       <PaymentManagementControls orderId={order.id} canCancel={["PENDING", "CONFIRMED", "PROCESSING", "PACKED"].includes(order.status)} />
       {/* Visual Status Progress Tracker (Prompt #21 requirement) */}
-      <div className="p-6 bg-white rounded-xl border gold-border shadow-sm space-y-4">
+      <div className="p-6 bg-ivory-50 rounded-xl border gold-border shadow-sm space-y-4">
         <h3 className="font-serif font-bold text-wine-900 text-sm">Fulfillment Progress Tracker</h3>
         <div className="grid grid-cols-5 gap-2 text-center text-xs">
           {steps.map((step, idx) => {
@@ -80,7 +82,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
 
       {/* Items & Shipping Address Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-        <div className="md:col-span-2 p-6 bg-white rounded-xl border gold-border space-y-4 shadow-sm">
+        <div className="md:col-span-2 p-6 bg-ivory-50 rounded-xl border gold-border space-y-4 shadow-sm">
           <h3 className="font-serif font-bold text-wine-900 text-sm border-b border-stone-100 pb-2">Ordered Items</h3>
           <div className="space-y-3">
             {order.items.map((item) => (

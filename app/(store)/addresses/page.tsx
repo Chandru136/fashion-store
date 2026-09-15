@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -11,7 +13,7 @@ export default async function AddressesPage({
   searchParams: Promise<{ returnTo?: string; add?: string }>;
 }) {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/addresses");
 
   const addresses = await getAddresses();
@@ -28,7 +30,7 @@ export default async function AddressesPage({
       </div>
 
       {addresses.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border gold-border p-8 space-y-3 max-w-md mx-auto">
+        <div className="text-center py-12 bg-ivory-50 rounded-xl border gold-border p-8 space-y-3 max-w-md mx-auto">
           <MapPin className="w-12 h-12 text-gold-500 mx-auto opacity-40" />
           <p className="text-xs text-stone-500">No saved addresses yet.</p>
         </div>
@@ -38,7 +40,7 @@ export default async function AddressesPage({
         {addresses.map((addr) => (
           <div
             key={addr.id}
-            className={`p-6 bg-white rounded-xl border space-y-2 shadow-sm relative ${
+            className={`p-6 bg-ivory-50 rounded-xl border space-y-2 shadow-sm relative ${
               addr.isDefault ? "border-2 border-gold-500 shadow-md" : "gold-border"
             }`}
           >

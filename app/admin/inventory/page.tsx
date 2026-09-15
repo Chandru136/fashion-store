@@ -15,11 +15,11 @@ export default async function AdminInventoryPage() {
 
       {/* Stock Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 text-xs">
-        <div className="p-5 bg-white rounded-xl border gold-border space-y-1 shadow-sm">
+        <div className="p-5 bg-ivory-50 rounded-xl border gold-border space-y-1 shadow-sm">
           <span className="text-stone-500 font-bold uppercase tracking-wider">Total Available Stock</span>
           <p className="font-serif text-2xl font-bold text-wine-900">{overview.totalAvailable.toLocaleString()} units</p>
         </div>
-        <div className="p-5 bg-white rounded-xl border border-stone-200 space-y-1 shadow-sm">
+        <div className="p-5 bg-ivory-50 rounded-xl border border-stone-200 space-y-1 shadow-sm">
           <span className="text-stone-500 font-bold uppercase tracking-wider">Reserved in Orders</span>
           <p className="font-serif text-2xl font-bold text-blue-800">{overview.totalReserved.toLocaleString()} units</p>
         </div>
@@ -34,7 +34,7 @@ export default async function AdminInventoryPage() {
       </div>
 
       {/* Inventory Table with Quick Adjustment Modal */}
-      <div className="p-6 bg-white rounded-xl border border-stone-200 shadow-sm space-y-4">
+      <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm space-y-4">
         <h2 className="font-serif font-bold text-wine-900 text-lg">Variant Stock Table</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">

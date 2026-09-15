@@ -3,10 +3,10 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex bg-stone-100 font-sans">
+    <div className="sc-admin min-h-screen flex bg-stone-100 font-sans">
       <AdminSidebar />
       <div className="flex-1 flex flex-col overflow-y-auto">
-        <header className="bg-white border-b border-stone-200 px-8 py-4 flex items-center justify-between shadow-sm sticky top-0 z-30">
+        <header className="bg-ivory-50 border-b border-stone-200 px-8 py-4 flex items-center justify-between shadow-sm sticky top-0 z-30">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-wine-900">

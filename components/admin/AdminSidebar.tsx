@@ -40,13 +40,11 @@ export function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-64 wine-gradient-bg text-ivory-100 border-r-2 border-gold-500/50 flex flex-col justify-between min-h-screen p-4 select-none">
+    <aside className="sc-sidebar w-64 wine-gradient-bg text-ivory-100 border-r-2 border-gold-500/50 flex flex-col justify-between min-h-screen p-4 select-none">
       <div className="space-y-6">
         {/* Admin Header Branding */}
         <div className="flex items-center gap-2 px-2 pt-2 border-b border-wine-700/60 pb-4">
-          <div className="w-9 h-9 bg-gold-500 text-wine-900 rounded-full flex items-center justify-center font-bold font-brand-title text-base shadow">
-            SC
-          </div>
+          <img src="/peacock-feather.svg" alt="" className="sc-brand-mark h-12 w-9 shrink-0" />
           <div>
             <span className="font-brand-title text-lg font-bold text-gold-300 tracking-tight block leading-none">
               ADMIN PORTAL

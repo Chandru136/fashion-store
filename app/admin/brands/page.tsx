@@ -17,7 +17,7 @@ export default async function AdminBrandsPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {brands.map((b) => (
-          <div key={b.id} className="p-5 bg-white rounded-xl border gold-border space-y-3 shadow-sm">
+          <div key={b.id} className="p-5 bg-ivory-50 rounded-xl border gold-border space-y-3 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 wine-gradient-bg rounded-full flex items-center justify-center text-gold-300 font-bold font-brand-title">
                 {b.name.charAt(0)}

@@ -20,8 +20,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-0">
       {/* 1. Hero Carousel — first thing rendered, directly under the site header */}
-      <HeroCarousel banners={data.banners} />
-
+      <HeroCarousel banners={data.banners} />
       <SpinToWin />
 
       {/* 3. Featured Editorial Collections */}
@@ -33,7 +32,7 @@ export default async function HomePage() {
       <PromoBannerCarousel banners={promoBanners} />
 
       {/* 4.5. Motion Lookbook — CSS motion keeps the experience fast without third-party video embeds. */}
-      <section className="py-10 sm:py-14 bg-white border-y border-ivory-300">
+      <section className="py-10 sm:py-14 bg-ivory-50 border-y border-ivory-300">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 pb-4 border-b border-ivory-200 gap-3">
             <div>
@@ -60,7 +59,7 @@ export default async function HomePage() {
       </section>
 
       {/* 4. Bestsellers Section */}
-      <section className="py-10 sm:py-12 bg-white border-y border-ivory-300">
+      <section className="py-10 sm:py-12 bg-ivory-50 border-y border-ivory-300">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 pb-4 border-b border-ivory-200">
             <div>
@@ -86,6 +85,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Shop by Category: between Bestsellers and New Arrivals. */}
+      <BrowseCategories categories={data.categories} />
 
       {/* 6. New Arrivals Section */}
       <section className="py-10 sm:py-12 bg-ivory-100">
@@ -113,12 +115,7 @@ export default async function HomePage() {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* 2. Browse Categories */}
-      <BrowseCategories categories={data.categories} />
-
-      {/* 9. Seasonal discovery links — adds depth without duplicating product catalogue logic. */}
+      </section>      {/* 9. Seasonal discovery links — adds depth without duplicating product catalogue logic. */}
       <section className="max-w-7xl mx-auto px-4 pb-2">
         <div className="grid grid-cols-1 md:grid-cols-2 overflow-hidden rounded-2xl border-2 gold-border shadow-xl">
           <div className="wine-gradient-bg p-8 md:p-12 text-center md:text-left">
@@ -132,7 +129,7 @@ export default async function HomePage() {
       </section>
 
       {/* 7. Customer Reviews & Testimonials */}
-      <section className="py-10 sm:py-14 bg-white border-y border-ivory-300">
+      <section className="py-10 sm:py-14 bg-ivory-50 border-y border-ivory-300">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center max-w-xl mx-auto mb-10 space-y-2">
             <span className="text-xs font-bold tracking-[0.2em] text-gold-600 uppercase">

@@ -132,7 +132,7 @@ export default function BannerForm({ bannerId, initialData }: BannerFormProps) {
     }`;
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="max-w-2xl space-y-5 bg-white p-6 rounded-xl border border-stone-200">
+    <form onSubmit={handleSubmit} noValidate className="max-w-2xl space-y-5 bg-ivory-50 p-6 rounded-xl border border-stone-200">
       {error && (
         <div className="p-3 bg-red-50 text-red-700 text-sm font-semibold rounded border border-red-200">
           {error}

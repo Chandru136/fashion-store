@@ -45,11 +45,11 @@ export default async function AdminDashboardPage() {
 
   const stats = [
     { label: "Total Revenue", value: `₹${totalRevenue.toLocaleString("en-IN")}`, icon: IndianRupee, color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-    { label: "Today's Sales", value: `₹${todayRevenue.toLocaleString("en-IN")}`, icon: TrendingUp, color: "text-blue-700 bg-blue-50 border-blue-200" },
+    { label: "Today's Sales", value: `₹${todayRevenue.toLocaleString("en-IN")}`, icon: TrendingUp, color: "text-wine-700 bg-ivory-50 border-ivory-300" },
     { label: "Total Orders", value: totalOrders.toLocaleString(), icon: ShoppingBag, color: "text-wine-900 bg-ivory-50 border-gold-300" },
     { label: "Pending Orders", value: pendingOrders.toLocaleString(), icon: AlertTriangle, color: "text-amber-700 bg-amber-50 border-amber-200" },
-    { label: "Active Customers", value: totalCustomers.toLocaleString(), icon: Users, color: "text-purple-700 bg-purple-50 border-purple-200" },
-    { label: "Active Products", value: totalProducts.toLocaleString(), icon: Package, color: "text-indigo-700 bg-indigo-50 border-indigo-200" },
+    { label: "Active Customers", value: totalCustomers.toLocaleString(), icon: Users, color: "text-wine-700 bg-ivory-50 border-ivory-300" },
+    { label: "Active Products", value: totalProducts.toLocaleString(), icon: Package, color: "text-wine-700 bg-ivory-50 border-ivory-300" },
     { label: "Low Stock Items", value: lowStockCount.toLocaleString(), icon: AlertTriangle, color: "text-red-700 bg-red-50 border-red-200" },
   ];
 
@@ -78,7 +78,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Recent Orders Ledger Table */}
-      <div className="p-6 bg-white rounded-xl border border-stone-200 shadow-sm space-y-4">
+      <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm space-y-4">
         <div className="flex items-center justify-between border-b border-stone-100 pb-3">
           <h2 className="font-serif font-bold text-wine-900 text-lg">Recent Customer Orders</h2>
           <Link href="/admin/orders" className="text-xs font-bold text-wine-800 hover:underline flex items-center gap-1">

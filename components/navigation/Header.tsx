@@ -7,7 +7,7 @@ import { Search, Heart, ShoppingBag, User, LogOut, ChevronDown, X } from "lucide
 import { MegaMenu } from "./MegaMenu";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { CartDrawer } from "@/components/cart/CartDrawer";
-import { logoutUser } from "@/app/actions/auth.actions";
+import { SignOutDialog } from "./SignOutDialog";
 import { getCartAction, removeCartItemAction, updateCartQtyAction } from "@/app/actions/cart.actions";
 
 interface HeaderProps {
@@ -20,6 +20,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
   const [searchQuery, setSearchQuery] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isSignOutOpen, setIsSignOutOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [cartData, setCartData] = useState<any>({ items: [], itemCount: cartItemCount, subtotal: 0, shipping: 0, tax: 0, grandTotal: 0 });
   const router = useRouter();
@@ -52,21 +53,20 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
     }
   };
 
-  const handleLogout = async () => {
-    await logoutUser();
-    router.refresh();
-    router.push("/login");
+  const handleLogout = () => {
+    setIsSignOutOpen(true);
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-ivory-300 shadow-sm">
+    <header className="sc-header sticky top-0 z-40 bg-ivory-50/95 backdrop-blur-md border-b border-ivory-300 shadow-sm">
+      <SignOutDialog open={isSignOutOpen} onClose={() => setIsSignOutOpen(false)} />
       <AnnouncementBar />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-9 h-9 sm:w-10 sm:h-10 wine-gradient-bg rounded-full flex items-center justify-center border gold-border shadow-md group-hover:scale-105 transition-transform">
-            <span className="font-brand-title text-gold-300 font-bold text-lg sm:text-xl tracking-tighter">SC</span>
+            <img src="/peacock-feather.svg" alt="" className="h-10 w-8" />
           </div>
           <div>
             <span className="font-brand-title text-xl sm:text-2xl font-bold tracking-tight text-wine-900 block leading-none">
@@ -129,7 +129,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
 
             {/* Dropdown Menu */}
             {isUserMenuOpen && user && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white border gold-border rounded-md shadow-xl py-2 z-50 text-xs animate-fade-in">
+              <div className="absolute right-0 top-full mt-2 w-48 bg-ivory-50 border gold-border rounded-md shadow-xl py-2 z-50 text-xs animate-fade-in">
                 <div className="px-3 py-2 border-b border-stone-100">
                   <p className="font-semibold text-wine-900">{user.name}</p>
                   <p className="text-[10px] text-stone-500">{user.email}</p>
@@ -183,7 +183,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
       </div>
 
       {isMobileSearchOpen && (
-        <form onSubmit={handleSearchSubmit} className="md:hidden border-t border-ivory-300 bg-white px-3 py-3">
+        <form onSubmit={handleSearchSubmit} className="md:hidden border-t border-ivory-300 bg-ivory-50 px-3 py-3">
           <div className="relative mx-auto max-w-7xl">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
             <input

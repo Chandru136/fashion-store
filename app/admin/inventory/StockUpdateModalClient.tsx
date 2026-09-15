@@ -23,7 +23,7 @@ export function StockUpdateModalClient({ variantId, currentStock }: { variantId:
     return (
       <button
         onClick={() => setIsEditing(true)}
-        className="px-3 py-1 bg-white border border-stone-300 text-wine-900 rounded font-semibold text-[11px] hover:border-gold-500 flex items-center gap-1 ml-auto"
+        className="px-3 py-1 bg-ivory-50 border border-stone-300 text-wine-900 rounded font-semibold text-[11px] hover:border-gold-500 flex items-center gap-1 ml-auto"
       >
         <Edit2 className="w-3 h-3 text-gold-600" /> Update
       </button>
