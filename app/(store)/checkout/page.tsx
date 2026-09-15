@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
 import { getOrCreateCart } from "@/lib/services/cart.service";
 import { cookies } from "next/headers";
@@ -8,7 +10,7 @@ import { prisma } from "@/lib/db";
 
 export default async function CheckoutPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   const user = await verifySessionToken(sessionCookie?.value);
 
   if (!user) {

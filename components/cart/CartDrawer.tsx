@@ -78,7 +78,7 @@ export function CartDrawer({
       <div className="absolute inset-0 bg-stone-900/25 transition-opacity" onClick={onClose} aria-hidden="true" />
 
       <div className="absolute inset-y-0 right-0 flex max-w-full pl-4 sm:pl-10">
-        <div className="flex h-dvh w-screen max-w-lg flex-col bg-white shadow-2xl">
+        <div className="flex h-dvh w-screen max-w-lg flex-col bg-ivory-50 shadow-2xl">
           {/* Header */}
           <div className="wine-gradient-bg text-ivory-50 p-4 flex items-center justify-between gold-border border-b">
             <div className="flex items-center gap-2">
@@ -140,7 +140,7 @@ export function CartDrawer({
                     </div>
 
                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-stone-100">
-                      <div className="flex items-center border border-stone-300 rounded bg-white">
+                      <div className="flex items-center border border-stone-300 rounded bg-ivory-50">
                         <button
                           onClick={async () => {
                             setUpdatingItemId(item.id);
@@ -206,7 +206,7 @@ export function CartDrawer({
 
           {/* Footer Summary */}
           {items.length > 0 && (
-            <div className="p-4 bg-white border-t border-stone-200 space-y-3 shadow-lg">
+            <div className="p-4 bg-ivory-50 border-t border-stone-200 space-y-3 shadow-lg">
               <div className="space-y-1.5 text-xs text-stone-600">
                 <div className="flex justify-between">
                   <span>Subtotal</span>

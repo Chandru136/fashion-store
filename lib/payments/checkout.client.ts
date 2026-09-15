@@ -1,6 +1,6 @@
 "use client";
 
-import { paymentStatusAction, preparePaymentAction, simulatePaymentAction, verifyPaymentAction } from "@/app/actions/payment.actions";
+import { paymentStatusAction, preparePaymentAction, simulatePaymentAction, verifyPaymentAction } from "@/lib/payments/checkout-api.client";
 import { confirmCheckoutPayment } from "./confirmation.client";
 
 type CheckoutResponse = { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string };
@@ -48,7 +48,16 @@ export async function openOrderPayment(orderId: string): Promise<boolean> {
       key: checkout.keyId, order_id: checkout.gatewayOrderId, amount: checkout.amount,
       currency: checkout.currency, name: "Sudha Collections",
       prefill: { name: checkout.name, contact: checkout.contact }, theme: { color: "#641c34" },
-      modal: { ondismiss: () => { if (!verifying) resolve(false); } },
+      modal: { ondismiss: async () => {
+        if (verifying) return;
+        // Closing the gateway can race its callback (especially on mobile).
+        // Recover a captured payment before treating the close as a cancellation.
+        const paid = await confirmCheckoutPayment(
+          () => paymentStatusAction(orderId),
+          () => paymentStatusAction(orderId),
+        );
+        if (!verifying) resolve(paid);
+      } },
       handler: async (response) => {
         verifying = true;
         try {

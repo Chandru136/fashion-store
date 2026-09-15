@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { verifySessionToken } from "@/lib/auth";
@@ -8,7 +10,7 @@ import { CheckCircle2, Package, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default async function OrderSuccessPage({ searchParams }: { searchParams: Promise<{ orderId?: string; orderNumber?: string }> }) {
   const sp = await searchParams;
-  const user = await verifySessionToken((await cookies()).get("sudha_collections_session_user")?.value);
+  const user = await verifySessionToken((await cookies()).get(SESSION_COOKIE_NAME)?.value);
   if (!user) redirect("/login");
   if (!sp.orderId) notFound();
   const order = await getOrderById(sp.orderId, user.id);
@@ -27,7 +29,7 @@ export default async function OrderSuccessPage({ searchParams }: { searchParams:
         <p className="text-xs text-stone-600">Your order has been recorded in our loom dispatch ledger.</p>
       </div>
 
-      <div className="p-5 bg-white rounded-lg border gold-border space-y-2 shadow-sm text-xs">
+      <div className="p-5 bg-ivory-50 rounded-lg border gold-border space-y-2 shadow-sm text-xs">
         <p className="font-bold text-wine-900 text-sm">Order Reference: {order.orderNumber}</p>
         <p className="text-stone-500">You can view your payment and delivery status in your order details.</p>
       </div>
@@ -43,7 +45,7 @@ export default async function OrderSuccessPage({ searchParams }: { searchParams:
         )}
         <Link
           href="/products"
-          className="w-full sm:w-auto px-6 py-3 bg-white border border-stone-300 text-wine-900 font-bold text-xs rounded uppercase tracking-wider hover:border-gold-500"
+          className="w-full sm:w-auto px-6 py-3 bg-ivory-50 border border-stone-300 text-wine-900 font-bold text-xs rounded uppercase tracking-wider hover:border-gold-500"
         >
           Continue Shopping
         </Link>

@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -17,11 +19,11 @@ const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR
 export default async function AdminCustomersPage({ searchParams }: {
   searchParams: Promise<{ q?: string; status?: string; role?: string; page?: string }>;
 }) {
-  const session = await verifySessionToken((await cookies()).get("sudha_collections_session_user")?.value);
+  const session = await verifySessionToken((await cookies()).get(SESSION_COOKIE_NAME)?.value);
   if (!session) redirect("/login?callbackUrl=/admin/customers");
   const actor = await prisma.user.findUnique({ where: { id: session.id }, select: { role: true, status: true } });
   if (!actor || actor.status !== "ACTIVE" || !hasPermission(actor.role, PERMISSIONS.VIEW_CUSTOMERS)) {
-    return <p role="alert" className="rounded-lg border border-stone-200 bg-white p-6">You do not have permission to view customer details.</p>;
+    return <p role="alert" className="rounded-lg border border-stone-200 bg-ivory-50 p-6">You do not have permission to view customer details.</p>;
   }
 
   const params = await searchParams;
@@ -72,7 +74,7 @@ export default async function AdminCustomersPage({ searchParams }: {
       <p className="mt-1 text-sm text-stone-500">View all Sudha Collections user accounts, saved addresses, and recent orders.</p>
     </div>
 
-    <div className="space-y-4 rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+    <div className="space-y-4 rounded-xl border border-stone-200 bg-ivory-50 p-6 shadow-sm">
       <form action="/admin/customers" className="flex flex-wrap items-end gap-3">
         <div className="min-w-52 flex-1">
           <label htmlFor="customer-search" className="mb-1 block text-xs font-semibold text-stone-600">Search accounts</label>

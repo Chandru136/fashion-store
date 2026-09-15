@@ -13,7 +13,7 @@ export function PaymentManagementControls({ orderId, canCancel = false, canRefun
     catch { setMessage("Unable to complete this operation. Refresh and check the order status."); }
     finally { setBusy(false); }
   }
-  const style = "rounded border border-stone-300 bg-white px-3 py-2 text-sm disabled:opacity-50";
+  const style = "rounded border border-stone-300 bg-ivory-50 px-3 py-2 text-sm disabled:opacity-50";
   return <div className="space-y-2 print:hidden">
     <div className="flex flex-wrap gap-2">
       {canCancel && orderId && <button className={style} disabled={busy} onClick={() => run(() => cancelOrderAction(orderId), "Cancel this order? Its stock will be released and any captured online payment queued for refund.")}>Cancel order</button>}

@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { loginUser } from "@/app/actions/auth.actions";
+import { useSearchParams } from "next/navigation";
 import { Lock, Mail, ArrowRight } from "lucide-react";
 import { Loader } from "@/components/common/Loader";
 
@@ -31,7 +30,6 @@ function LoginPageInner() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -60,19 +58,26 @@ function LoginPageInner() {
     const hasErrors = Object.values(fieldErrors).some(Boolean);
     if (hasErrors) return;
 
+    if (isLoading) return;
     setIsLoading(true);
-    const res = await loginUser({ email, password });
-    setIsLoading(false);
-
-    if (res.success) {
-      router.refresh();
-      if (res.user?.role !== "CUSTOMER") {
-        router.push("/admin");
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json", "X-Sudha-Login": "1" },
+        body: JSON.stringify({ email, password }),
+      });
+      const res = await response.json();
+      if (response.ok && res.success) {
+        window.location.replace(res.user?.role !== "CUSTOMER" ? "/admin" : "/profile");
       } else {
-        router.push("/profile");
+        setServerError(res.error || "Login failed. Please try again.");
       }
-    } else {
-      setServerError(res.error || "Login failed");
+    } catch {
+      setServerError("Unable to sign in. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -80,7 +85,7 @@ function LoginPageInner() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-16">
-      <div className="p-8 bg-white rounded-xl border gold-border shadow-xl space-y-6">
+      <div className="p-8 bg-ivory-50 rounded-xl border gold-border shadow-xl space-y-6">
         <div className="text-center space-y-1">
           <div className="w-12 h-12 wine-gradient-bg rounded-full flex items-center justify-center mx-auto border gold-border text-gold-300 font-bold text-xl font-brand-title shadow">
             AH

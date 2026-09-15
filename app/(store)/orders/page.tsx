@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
 import { getUserOrders } from "@/lib/services/order.service";
 import { cookies } from "next/headers";
@@ -8,7 +10,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 export default async function OrdersPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/orders");
 
   const user = await verifySessionToken(sessionCookie.value);
@@ -25,7 +27,7 @@ export default async function OrdersPage() {
       </div>
 
       {orders.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border gold-border p-8 space-y-4 max-w-md mx-auto">
+        <div className="text-center py-16 bg-ivory-50 rounded-xl border gold-border p-8 space-y-4 max-w-md mx-auto">
           <Package className="w-16 h-16 text-gold-500 mx-auto opacity-40" />
           <h2 className="font-serif text-2xl font-bold text-wine-900">No orders placed yet</h2>
           <p className="text-xs text-stone-500">Your future order history will appear here.</p>
@@ -36,7 +38,7 @@ export default async function OrdersPage() {
       ) : (
         <div className="space-y-4">
           {orders.map((order) => (
-            <div key={order.id} className="p-6 bg-white rounded-lg border gold-border space-y-4 shadow-sm hover:border-gold-500 transition-colors">
+            <div key={order.id} className="p-6 bg-ivory-50 rounded-lg border gold-border space-y-4 shadow-sm hover:border-gold-500 transition-colors">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3 text-xs">
                 <div>
                   <span className="font-bold text-wine-900 text-sm">Order #{order.orderNumber}</span>

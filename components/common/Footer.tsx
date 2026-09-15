@@ -17,7 +17,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="wine-gradient-bg text-ivory-100 border-t-2 border-gold-500 pt-14 pb-8">
+    <footer className="sc-footer wine-gradient-bg text-ivory-100 border-t-2 border-gold-500 pt-14 pb-8">
       {/* Trust Badges Bar */}
       <div className="max-w-7xl mx-auto px-4 pb-12 border-b border-wine-700/60 grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-xs">
         <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-wine-900/40 border gold-border">
@@ -47,9 +47,7 @@ export function Footer() {
         {/* Brand Column */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 bg-gold-500 rounded-full flex items-center justify-center text-wine-900 font-bold text-lg font-brand-title">
-              SC
-            </div>
+            <img src="/peacock-feather.svg" alt="" className="sc-brand-mark h-12 w-9 shrink-0" />
             <div>
               <span className="font-brand-title text-xl font-bold text-gold-300 tracking-tight block leading-none">
                 SUDHA COLLECTIONS

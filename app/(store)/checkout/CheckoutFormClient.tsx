@@ -75,7 +75,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
       {/* Left: Step 1 Shipping & Payment Inputs */}
       <div className="lg:col-span-7 space-y-6">
         {/* Step 1: Address Details */}
-        <div className="p-6 bg-white rounded-lg border gold-border space-y-4 shadow-sm">
+        <div className="p-6 bg-ivory-50 rounded-lg border gold-border space-y-4 shadow-sm">
           <h2 className="font-serif font-bold text-wine-900 text-base border-b border-stone-100 pb-2 flex items-center gap-2">
             <Truck className="w-5 h-5 text-gold-600" /> 1. Shipping Address Details
           </h2>
@@ -106,7 +106,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
           )}
         </div>
 
-        <div className="p-6 bg-white rounded-lg border gold-border space-y-4 shadow-sm">
+        <div className="p-6 bg-ivory-50 rounded-lg border gold-border space-y-4 shadow-sm">
           <h2 className="font-serif font-bold text-wine-900 text-base border-b border-stone-100 pb-2">2. Billing Address</h2>
           <label className="flex items-center gap-2 text-xs font-bold text-stone-700">
             <input type="checkbox" checked={billingSameAsShipping} onChange={(e) => setBillingSameAsShipping(e.target.checked)} />
@@ -120,7 +120,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
         </div>
 
         {/* Step 2: Payment Method */}
-        <div className="p-6 bg-white rounded-lg border gold-border space-y-4 shadow-sm">
+        <div className="p-6 bg-ivory-50 rounded-lg border gold-border space-y-4 shadow-sm">
           <h2 className="font-serif font-bold text-wine-900 text-base border-b border-stone-100 pb-2 flex items-center gap-2">
             <Lock className="w-5 h-5 text-gold-600" /> 3. Payment Method
           </h2>

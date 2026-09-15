@@ -101,7 +101,7 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-16">
-      <div className="p-8 bg-white rounded-xl border gold-border shadow-xl space-y-6">
+      <div className="p-8 bg-ivory-50 rounded-xl border gold-border shadow-xl space-y-6">
         <div className="text-center space-y-1">
           <div className="w-12 h-12 wine-gradient-bg rounded-full flex items-center justify-center mx-auto border gold-border text-gold-300 font-bold text-xl font-brand-title shadow">
             AH

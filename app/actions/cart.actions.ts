@@ -1,5 +1,7 @@
 "use server";
 
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
+
 import { addItemToCart, updateCartItemQty, removeCartItem, getOrCreateCart } from "@/lib/services/cart.service";
 import { validateCoupon } from "@/lib/services/coupon.service";
 import { cookies } from "next/headers";
@@ -10,7 +12,7 @@ import { AddToCartSchema, UpdateCartItemSchema } from "@/lib/validations/cart";
 
 async function getSessionIdentifiers() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   const session = await verifySessionToken(sessionCookie?.value);
   const userId = session?.id;
 

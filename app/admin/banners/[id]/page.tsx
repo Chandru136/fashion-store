@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -10,8 +12,7 @@ export default async function EditBannerPage({ params }: { params: Promise<{ id:
 
   const cookieStore = await cookies();
   const token =
-    cookieStore.get("sudha_collections_session_user")?.value ||
-    cookieStore.get("aarna_session_user")?.value;
+    cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionToken(token);
 
   if (!session || session.role === "CUSTOMER") {

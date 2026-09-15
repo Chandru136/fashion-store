@@ -119,7 +119,7 @@ export function ProductCard({
         <button
           onClick={handleWishlistToggle}
           disabled={isWishlistLoading}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-wine-900 hover:bg-white hover:text-red-600 transition-all shadow-md z-10"
+          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-ivory-50/80 backdrop-blur-md flex items-center justify-center text-wine-900 hover:bg-ivory-50 hover:text-red-600 transition-all shadow-md z-10"
           title={isWishlistLoading ? "Updating Wishlist..." : isWishlisted ? "Remove from Wishlist" : "Save to Wishlist"}
         >
           {isWishlistLoading ? (
@@ -133,7 +133,7 @@ export function ProductCard({
         <div className="absolute bottom-3 inset-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2 z-10">
           <Link
             href={`/products/${slug}`}
-            className="flex-1 py-2 bg-white/90 backdrop-blur-md text-wine-900 font-semibold text-[11px] rounded text-center shadow hover:bg-white transition-all uppercase tracking-wider"
+            className="flex-1 py-2 bg-ivory-50/90 backdrop-blur-md text-wine-900 font-semibold text-[11px] rounded text-center shadow hover:bg-ivory-50 transition-all uppercase tracking-wider"
           >
             Quick View
           </Link>

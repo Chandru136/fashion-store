@@ -133,7 +133,7 @@ export default function AddAddressForm({ returnTo, initiallyOpen = false }: { re
   }
 
   return (
-    <div className="p-6 bg-white rounded-xl border gold-border shadow-md space-y-4 text-xs">
+    <div className="p-6 bg-ivory-50 rounded-xl border gold-border shadow-md space-y-4 text-xs">
       <div className="flex items-center justify-between">
         <h3 className="font-serif font-bold text-wine-900 text-sm">New Address</h3>
         <button onClick={() => setOpen(false)} className="text-stone-400 hover:text-stone-700">

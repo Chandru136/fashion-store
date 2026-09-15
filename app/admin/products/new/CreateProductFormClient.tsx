@@ -131,7 +131,7 @@ export function CreateProductFormClient({ categories, brands }: { categories: Ca
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-8 bg-white rounded-xl border border-stone-200 shadow-md space-y-6 text-xs">
+    <form onSubmit={handleSubmit} className="p-8 bg-ivory-50 rounded-xl border border-stone-200 shadow-md space-y-6 text-xs">
       {errorMsg && <div className="p-3 bg-red-50 text-red-700 font-bold rounded border border-red-200">⚠ {errorMsg}</div>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

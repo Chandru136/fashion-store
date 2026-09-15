@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
 import { getOrCreateCart } from "@/lib/services/cart.service";
 import { cookies } from "next/headers";
@@ -8,7 +10,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 export default async function CartPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   const userId = (await verifySessionToken(sessionCookie?.value))?.id;
 
   const sessionId = cookieStore.get("sudha_collections_cart_session")?.value;

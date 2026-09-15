@@ -53,7 +53,7 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="text-center py-20 bg-white rounded-xl border gold-border p-8 space-y-4 max-w-md mx-auto">
+      <div className="text-center py-20 bg-ivory-50 rounded-xl border gold-border p-8 space-y-4 max-w-md mx-auto">
         <ShoppingBag className="w-16 h-16 text-gold-500 mx-auto opacity-40" />
         <h2 className="font-serif text-2xl font-bold text-wine-900">Your bag is empty</h2>
         <p className="text-xs text-stone-500">Discover our authentic Kanchipuram & Banarasi weaves.</p>
@@ -72,7 +72,7 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
       {/* Left: Cart Items */}
       <div className="lg:col-span-8 space-y-4">
         {cart.items.map((item: any) => (
-          <div key={item.id} className="p-4 bg-white rounded-lg border gold-border flex gap-4 items-center shadow-sm">
+          <div key={item.id} className="p-4 bg-ivory-50 rounded-lg border gold-border flex gap-4 items-center shadow-sm">
             <img src={item.image} alt={item.productName} className="w-24 h-28 object-cover rounded bg-stone-100 flex-shrink-0" />
             <div className="flex-1 flex flex-col justify-between">
               <div>
@@ -91,7 +91,7 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
               </div>
 
               <div className="flex items-center justify-between mt-3 pt-2 border-t border-stone-100">
-                <div className="flex items-center border border-stone-300 rounded bg-white">
+                <div className="flex items-center border border-stone-300 rounded bg-ivory-50">
                   <button
                     onClick={() => handleUpdateQty(item.id, item.quantity - 1)}
                     disabled={updatingItemId === item.id}
@@ -136,7 +136,7 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
       {/* Right: Summary & Coupon */}
       <div className="lg:col-span-4 space-y-6">
         {/* Coupon Form */}
-        <div className="p-5 bg-white rounded-lg border gold-border space-y-3 shadow-sm">
+        <div className="p-5 bg-ivory-50 rounded-lg border gold-border space-y-3 shadow-sm">
           <h3 className="font-serif font-bold text-wine-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
             <Tag className="w-4 h-4 text-gold-600" /> Apply Promo Coupon
           </h3>

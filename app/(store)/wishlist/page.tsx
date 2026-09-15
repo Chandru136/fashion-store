@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
 import { getUserWishlistAction } from "@/app/actions/wishlist.actions";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -9,7 +11,7 @@ import { verifySessionToken } from "@/lib/auth";
 
 export default async function WishlistPage() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("sudha_collections_session_user");
+  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   if (!(await verifySessionToken(sessionCookie?.value))) redirect("/login?callbackUrl=/wishlist");
 
   const items = await getUserWishlistAction();
@@ -22,7 +24,7 @@ export default async function WishlistPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-xl border gold-border p-8 space-y-4 max-w-md mx-auto">
+        <div className="text-center py-20 bg-ivory-50 rounded-xl border gold-border p-8 space-y-4 max-w-md mx-auto">
           <Heart className="w-16 h-16 text-gold-500 mx-auto opacity-40" />
           <h2 className="font-serif text-2xl font-bold text-wine-900">Your wishlist is empty</h2>
           <p className="text-xs text-stone-500">Tap the heart icon on any product to save items for later.</p>

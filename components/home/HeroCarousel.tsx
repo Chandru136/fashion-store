@@ -42,7 +42,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   if (!banners || banners.length === 0) return null;
 
   return (
-    <section className="relative w-full h-[70vh] min-h-[420px] max-h-[720px] overflow-hidden bg-wine-900">
+    <section className="sc-hero relative w-full h-[70vh] min-h-[420px] max-h-[720px] overflow-hidden bg-wine-900">
       {banners.map((banner, idx) => (
         <div
           key={banner.id}
@@ -76,7 +76,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                     {banner.subtitle}
                   </span>
                 )}
-                <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+                <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal leading-tight">
                   {banner.title}
                 </h1>
                 {banner.buttonText &&
@@ -85,7 +85,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                     <div className="pt-2">
                       <Link
                         href={banner.buttonUrl}
-                        className="inline-flex items-center gap-2 px-7 py-3 bg-ivory-50 text-wine-900 font-bold text-xs uppercase tracking-widest rounded-sm hover:bg-gold-300 transition-colors"
+                        className="inline-flex items-center gap-2 px-7 py-3 bg-gold-500 text-wine-900 font-bold text-xs uppercase tracking-widest rounded-sm hover:bg-gold-300 transition-colors"
                       >
                         {banner.buttonText}
                       </Link>

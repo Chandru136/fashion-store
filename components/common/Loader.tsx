@@ -22,20 +22,20 @@ const sizeClasses: Record<LoaderSize, { dim: string; stroke: number }> = {
 
 const colorConfig: Record<LoaderColor, { track: string; head: string }> = {
   gold: {
-    track: "rgba(212, 175, 55, 0.25)",
-    head: "#D4AF37",
+    track: "rgba(199, 163, 84, 0.25)",
+    head: "var(--gold-500)",
   },
   wine: {
-    track: "rgba(74, 14, 23, 0.2)",
-    head: "#4A0E17",
+    track: "rgba(7, 61, 62, 0.2)",
+    head: "var(--wine-800)",
   },
   white: {
     track: "rgba(255, 255, 255, 0.25)",
-    head: "#FFFFFF",
+    head: "var(--ivory-50)",
   },
   stone: {
     track: "rgba(120, 113, 108, 0.2)",
-    head: "#57534E",
+    head: "var(--muted-text)",
   },
 };
 
@@ -125,9 +125,7 @@ export function SudhaBrandLoader({
 
         {/* Center brand crest */}
         <div className="absolute w-12 h-12 wine-gradient-bg rounded-full flex items-center justify-center border gold-border shadow-md">
-          <span className="font-brand-title text-gold-300 font-bold text-base tracking-tighter">
-            SC
-          </span>
+          <img src="/peacock-feather.svg" alt="" className="sc-brand-mark h-12 w-9 shrink-0" />
         </div>
       </div>
 
@@ -156,13 +154,11 @@ export function LoaderOverlay({
       aria-label={message}
       className="fixed inset-0 z-[120] bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
     >
-      <div className="bg-white/95 rounded-2xl p-6 shadow-2xl border gold-border max-w-sm w-full flex flex-col items-center text-center space-y-4">
+      <div className="bg-ivory-50/95 rounded-2xl p-6 shadow-2xl border gold-border max-w-sm w-full flex flex-col items-center text-center space-y-4">
         <div className="relative flex items-center justify-center">
           <div className="w-16 h-16 rounded-full border-3 border-gold-200 border-t-wine-800 border-r-gold-500 luxury-spinner shadow" />
           <div className="absolute w-9 h-9 wine-gradient-bg rounded-full flex items-center justify-center border gold-border">
-            <span className="font-brand-title text-gold-300 font-bold text-xs tracking-tighter">
-              SC
-            </span>
+            <img src="/peacock-feather.svg" alt="" className="sc-brand-mark h-12 w-9 shrink-0" />
           </div>
         </div>
         <div>

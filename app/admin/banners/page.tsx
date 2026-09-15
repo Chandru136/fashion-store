@@ -1,3 +1,5 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -9,8 +11,7 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, ImageOff } from "lucide-react";
 export default async function AdminBannersPage() {
   const cookieStore = await cookies();
   const token =
-    cookieStore.get("sudha_collections_session_user")?.value ||
-    cookieStore.get("aarna_session_user")?.value;
+    cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionToken(token);
 
   if (!session || session.role === "CUSTOMER") {
@@ -37,12 +38,12 @@ export default async function AdminBannersPage() {
       </div>
 
       {banners.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border border-stone-200 space-y-3">
+        <div className="text-center py-16 bg-ivory-50 rounded-xl border border-stone-200 space-y-3">
           <ImageOff className="w-12 h-12 text-stone-300 mx-auto" />
           <p className="text-sm text-stone-500">No banners yet. Create one to populate the homepage carousel.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+        <div className="bg-ivory-50 rounded-xl border border-stone-200 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-stone-50 text-stone-500 text-xs uppercase tracking-wider">
               <tr>

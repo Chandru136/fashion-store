@@ -1,10 +1,11 @@
+
+import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS, SESSION_COOKIES_TO_CLEAR } from "@/lib/session-config";
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeCodeForToken, fetchGoogleUserInfo } from "@/lib/google-auth";
 import { createSessionToken } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { cookies } from "next/headers";
 
-const SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // keep in sync with lib/auth.ts
 
 export async function GET(request: NextRequest) {
   const url = request.nextUrl;
@@ -68,7 +69,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (user.status === "BLOCKED") {
+    if (user.status !== "ACTIVE") {
       return NextResponse.redirect(loginErrorUrl("This account has been suspended."));
     }
 
@@ -77,16 +78,12 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.redirect(new URL("/profile", request.url));
 
-    response.cookies.set("sudha_collections_session_user", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: SESSION_COOKIE_MAX_AGE,
-      path: "/",
-    });
+    response.cookies.set(SESSION_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
 
     // Clean up the one-time CSRF state cookie now that it's served its purpose.
-    response.cookies.delete("google_oauth_state");
+    for (const name of SESSION_COOKIES_TO_CLEAR) {
+      if (name !== SESSION_COOKIE_NAME) response.cookies.delete(name);
+    }
 
     return response;
   } catch (err) {

@@ -34,7 +34,7 @@ export function AdminOrderStatusUpdaterClient({
   };
 
   return (
-    <form onSubmit={handleUpdate} className="p-6 bg-white rounded-xl border gold-border shadow-sm space-y-4 text-xs">
+    <form onSubmit={handleUpdate} className="p-6 bg-ivory-50 rounded-xl border gold-border shadow-sm space-y-4 text-xs">
       <h3 className="font-serif font-bold text-wine-900 text-sm flex items-center gap-1.5">
         <Truck className="w-4 h-4 text-gold-600" /> Update Order Fulfillment & Tracking
       </h3>

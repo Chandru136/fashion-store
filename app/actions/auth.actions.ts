@@ -1,5 +1,7 @@
 "use server";
 
+import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS, SESSION_COOKIES_TO_CLEAR } from "@/lib/session-config";
+
 import { prisma } from "@/lib/db";
 import {
   hashPassword,
@@ -14,7 +16,6 @@ import { cookies } from "next/headers";
 import { sendEmail } from "@/lib/mailer";
 import { welcomeEmailHtml } from "@/lib/email-templates";
 
-const SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days — keep in sync with lib/auth.ts SESSION_DURATION_SECONDS
 
 type SessionUser = { id: string; name: string; email: string; role: import("@prisma/client").RoleEnum };
 type AuthResult = { success: true; user: SessionUser } | { success: false; error: string };
@@ -58,13 +59,10 @@ export async function registerUser(input: RegisterInput): Promise<AuthResult> {
   });
 
   const cookieStore = await cookies();
-  cookieStore.set("aarna_session_user", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: SESSION_COOKIE_MAX_AGE,
-    path: "/",
-  });
+  for (const name of SESSION_COOKIES_TO_CLEAR) {
+    if (name !== SESSION_COOKIE_NAME) cookieStore.delete(name);
+  }
+  cookieStore.set(SESSION_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
 
   return { success: true, user: sessionUser };
 }
@@ -80,7 +78,7 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
   // wrong, or the account is locked/blocked — avoids leaking which case it is.
   const genericError = { success: false as const, error: "Invalid email or password" };
 
-  if (!user || user.status === "BLOCKED") {
+  if (!user || user.status !== "ACTIVE") {
     return genericError;
   }
 
@@ -91,7 +89,7 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
     };
   }
 
-  if (user.authProvider === "GOOGLE" || !user.passwordHash) {
+  if (!user.passwordHash) {
     return {
       success: false as const,
       error: "This account uses Google Sign-In. Please continue with Google below.",
@@ -113,28 +111,16 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
   const token = await createSessionToken(sessionUser);
 
   const cookieStore = await cookies();
-  cookieStore.set("aarna_session_user", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: SESSION_COOKIE_MAX_AGE,
-    path: "/",
-  });
+  for (const name of SESSION_COOKIES_TO_CLEAR) {
+    if (name !== SESSION_COOKIE_NAME) cookieStore.delete(name);
+  }
+  cookieStore.set(SESSION_COOKIE_NAME, token, SESSION_COOKIE_OPTIONS);
 
   return { success: true, user: sessionUser };
 }
 
 export async function logoutUser() {
   const cookieStore = await cookies();
-  // Must match the path the cookie was originally set with ("/") — a
-  // mismatched path causes the browser to silently ignore the delete,
-  // leaving the old session cookie in place even though this call "succeeds".
-  cookieStore.set("aarna_session_user", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: new Date(0),
-  });
+  cookieStore.delete("aarna_session_user");
   return { success: true };
 }

@@ -1,10 +1,12 @@
+
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifySessionTokenEdge } from "@/lib/session-edge";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get("sudha_collections_session_user")?.value;
+  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   const session = await verifySessionTokenEdge(token);
 
   // Admin route protection — role comes from the *verified* JWT payload,
