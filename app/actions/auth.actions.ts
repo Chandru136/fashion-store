@@ -126,6 +126,15 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
 
 export async function logoutUser() {
   const cookieStore = await cookies();
-  cookieStore.delete("aarna_session_user");
+  // Must match the path the cookie was originally set with ("/") — a
+  // mismatched path causes the browser to silently ignore the delete,
+  // leaving the old session cookie in place even though this call "succeeds".
+  cookieStore.set("aarna_session_user", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    expires: new Date(0),
+  });
   return { success: true };
 }
