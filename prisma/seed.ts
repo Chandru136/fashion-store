@@ -464,7 +464,7 @@ async function main() {
 
     await prisma.order.create({
       data: {
-        orderNumber: `ORD-2026-${10001 + i}`,
+        orderNumber: `SC-2026-${10001 + i}`,
         userId: cust.id,
         status: status,
         subtotal: subtotal,
@@ -473,7 +473,7 @@ async function main() {
         tax: tax,
         total: total,
         paymentStatus: status === OrderStatus.DELIVERED || status === OrderStatus.SHIPPED ? PaymentStatus.PAID : PaymentStatus.PENDING,
-        paymentMethod: i % 2 === 0 ? "ONLINE" : "COD",
+        paymentMethod: "ONLINE",
         shippingName: cust.name,
         shippingPhone: cust.phone || "+91 9876543210",
         shippingAddress: `${10 + i}, Royal Heritage Garden, MG Road`,
@@ -503,8 +503,8 @@ async function main() {
         payments: {
           create: [
             {
-              provider: i % 2 === 0 ? "MOCK_ONLINE" : "COD",
-              transactionId: `TXN-SC-${90000 + i}`,
+              provider: "MOCK",
+              transactionId: `SC-TXN-${90000 + i}`,
               amount: total,
               status: status === OrderStatus.DELIVERED || status === OrderStatus.SHIPPED ? PaymentStatus.PAID : PaymentStatus.PENDING,
               paidAt: status === OrderStatus.DELIVERED ? new Date() : null,

@@ -1,0 +1,222 @@
+﻿.landing { --section-space: clamp(52px, 6vw, 96px); color: var(--wine-900); }
+.landing img { display: block; }
+.landing a, .landing button { -webkit-tap-highlight-color: transparent; }
+.landing a:focus-visible, .landing button:focus-visible { outline: 3px solid var(--gold-500); outline-offset: 6px; }
+.section { padding: var(--section-space) 0; scroll-margin-top: 150px; }
+.light { background: var(--ivory-50); color: var(--wine-900); }
+.dark { background: var(--wine-900); color: var(--ivory-50); }
+.container { width: min(1440px, 92%); margin-inline: auto; }
+.heading { text-align: center; margin: 0 auto 42px; max-width: 840px; }
+.eyebrow { display: block; font-size: 10px; font-weight: 600; letter-spacing: .23em; line-height: 1.8; text-transform: uppercase; color: var(--gold-600); }
+.dark .eyebrow { color: var(--gold-300); }
+.heading h2, .editorialIntro h2, .campaignCopy h2 { font-size: clamp(30px, 3.1vw, 47px); font-weight: 400; line-height: 1.3; margin: 12px 0 17px; text-wrap: balance; }
+.landing em { font-weight: 400; }
+.heading p, .editorialIntro p { font-size: 14px; line-height: 1.9; opacity: .78; }
+.ornament { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 24px; color: var(--gold-500); }
+.ornament span { width: 60px; height: 1px; background: currentColor; opacity: .55; }
+.storyGrid, .collectionGrid, .productGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
+.storyCard, .editCard, .worldCard { position: relative; display: block; overflow: hidden; background: var(--wine-800); color: var(--ivory-50); }
+.storyCard { aspect-ratio: 3/4.6; }
+.storyCard::after, .editCard::after, .worldCard::after, .gopuramImage::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, #001b1de8, #001b1d10 58%, transparent); pointer-events: none; }
+.storyCard img, .editCard img, .worldCard img, .collectionCard img, .socialCard img, .gopuramImage img { width: 100%; height: 100%; object-fit: cover; transition: transform 900ms cubic-bezier(.2,.7,.3,1), filter 700ms; }
+.storyCard:hover img, .editCard:hover img, .worldCard:hover img, .collectionCard:hover img, .socialCard:hover img, .templeCard:hover img { transform: scale(1.045); }
+.storyNumber { position: absolute; top: 18px; left: 18px; z-index: 1; font-size: 9px; letter-spacing: .18em; background: #032b2d99; padding: 7px 10px; }
+.cardCaption { position: absolute; inset: auto 0 0; z-index: 1; padding: 26px 22px; color: var(--ivory-50); }
+.cardCaption h3 { font-size: clamp(21px, 1.9vw, 29px); line-height: 1.25; font-weight: 400; margin: 8px 0 14px; }
+.cardCaption p { font-size: 10px; line-height: 1.7; opacity: .85; }
+.cardCaption span { display: inline-flex; align-items: center; gap: 12px; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; }
+.landing .detailCrop { object-position: 65% 80%; transform: scale(1.7); }
+.landing a:hover .detailCrop { transform: scale(1.78); }
+.editorialLayout { display: grid; grid-template-columns: 1fr 3fr; gap: 50px; align-items: center; }
+.editorialIntro > svg { color: var(--gold-500); margin-bottom: 23px; }
+.editorialIntro h2 { font-size: clamp(30px, 2.8vw, 42px); }
+.editorialIntro p + p { margin-top: 18px; }
+.editorialIntro .textLink { margin-top: 25px; }
+.textLink { display: inline-flex; align-items: center; gap: 13px; border-bottom: 1px solid var(--gold-500); padding-bottom: 7px; font-size: 12px; line-height: 1.6; transition: color 200ms, gap 200ms; }
+.textLink:hover { color: var(--gold-600); gap: 19px; }
+.dark .textLink:hover { color: var(--gold-300); }
+.collectionTabs { display: flex; overflow-x: auto; gap: 24px; margin-bottom: 25px; padding-bottom: 12px; border-bottom: 1px solid #c7a35440; scrollbar-width: thin; }
+.collectionTabs button { flex-shrink: 0; font-family: var(--font-serif); font-size: 17px; cursor: pointer; color: var(--ivory-300); border-bottom: 1px solid transparent; padding-bottom: 5px; }
+.collectionTabs button[aria-pressed="true"] { color: var(--gold-300); border-color: currentColor; }
+.editGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+.editCard { aspect-ratio: 3/4.7; animation: enter 600ms ease both; }
+.editCard .cardCaption { padding: 20px 15px; }
+.editCard .cardCaption h3 { font-size: 23px; }
+.categoryRow { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 25px; }
+.category { text-align: center; }
+.category > div { aspect-ratio: 1; border-radius: 50%; padding: 5px; border: 1px solid var(--gold-400); margin-bottom: 20px; transition: transform 350ms, border-color 350ms; }
+.category img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 65%; }
+.category:hover > div { transform: translateY(-5px); border-color: var(--wine-700); }
+.category span { font-size: 13px; line-height: 1.6; text-transform: capitalize; }
+.productGrid :global(.luxury-card) { border-radius: 0; box-shadow: none; border: 1px solid #c7a35440; }
+.productGrid :global(.luxury-card) h3 { font-size: 15px; line-height: 1.5; }
+.productGrid :global(.luxury-card):focus-within { outline: 2px solid var(--gold-400); }
+.productGrid :global(.luxury-card):focus-within :global(.opacity-0) { opacity: 1; }
+.center { text-align: center; margin-top: 35px; }
+.previewCard { display: flex; flex-direction: column; background: var(--ivory-50); color: var(--wine-900); border: 1px solid #c7a35440; }
+.previewImage { position: relative; aspect-ratio: 3/4; overflow: hidden; }
+.previewImage img { width: 100%; height: 100%; object-fit: cover; }
+.previewImage > span { position: absolute; top: 12px; left: 12px; background: var(--ivory-50); padding: 5px 9px; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.previewInfo { padding: 19px 16px; }
+.previewInfo .eyebrow { color: var(--gold-600); font-size: 8px; }
+.previewInfo h3 { font-size: 18px; font-weight: 400; margin: 6px 0 12px; }
+.previewInfo p { font-size: 11px; display: flex; align-items: center; gap: 12px; }
+.collectionCard { text-align: center; }
+.collectionCard > div { aspect-ratio: 3/4; overflow: hidden; margin-bottom: 24px; }
+.collectionCard .eyebrow { font-size: 8px; letter-spacing: .1em; }
+.collectionCard h3 { font-size: 25px; font-weight: 400; margin: 7px 0 16px; }
+.templeSection { background: var(--ivory-100); }
+.templeLayout { display: grid; grid-template-columns: 1fr 2.7fr; align-items: center; gap: 50px; }
+.feather { width: 45px; height: 90px !important; object-fit: contain; margin-bottom: 20px; }
+.templeGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 48px); }
+.templeCard { text-align: center; }
+.gopuramFrame {
+  --temple-mask: url('/images/home/gopuram-frame.svg');
+  -webkit-mask: var(--temple-mask) center / 100% 100% no-repeat;
+  mask: var(--temple-mask) center / 100% 100% no-repeat;
+  background: #35352f;
+  padding: 1.5px;
+  aspect-ratio: 360 / 590;
+}
+.gopuramImage {
+  -webkit-mask: var(--temple-mask) center / 100% 100% no-repeat;
+  mask: var(--temple-mask) center / 100% 100% no-repeat;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+.gopuramImage img { object-position: 50% 40%; }
+.gopuramImage .cardCaption { padding: 28px 9px 22px; }
+.gopuramImage .cardCaption > svg { margin: 0 auto 9px; color: var(--ivory-50); }
+.gopuramImage .cardCaption h3 { font-size: clamp(17px, 1.35vw, 23px); font-weight: 600; text-transform: uppercase; margin: 0 0 7px; }
+.gopuramImage .cardCaption p { font-size: 12px; opacity: 1; }
+.gopuramImage .cardCaption .templeShop { display: inline-block; margin-top: 13px; padding: 5px 10px; background: var(--ivory-50); color: var(--wine-900); font-size: 8px; font-weight: 600; line-height: 1.2; letter-spacing: .06em; }
+.templeCard > .textLink { margin-top: 22px; }
+.campaign { min-height: 440px; position: relative; overflow: hidden; }
+.campaign > img { position: absolute; right: 0; top: 0; width: 58%; height: 100%; object-fit: cover; object-position: 50% 32%; }
+.campaign::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--wine-900) 20%, #032b2deb 38%, #032b2d08 85%); pointer-events: none; }
+.campaign:has(> section)::after { display: none; }
+.campaignCopy { position: relative; z-index: 1; width: min(1440px, 92%); margin: 0 auto; padding-block: 80px; }
+.campaignCopy h2 { font-size: clamp(32px, 3.7vw, 56px); max-width: 670px; }
+.button { display: inline-flex; align-items: center; gap: 20px; padding: 16px 24px; color: var(--wine-900); background: var(--gold-300); margin-top: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; transition: background 200ms; }
+.button:hover { background: var(--ivory-50); }
+.values { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 7px solid var(--gold-300); padding: 42px 22px; outline: 1px solid var(--gold-500); outline-offset: -15px; }
+.values > div { padding: 16px 23px; text-align: center; border-right: 1px solid var(--ivory-300); }
+.values > div:last-child { border: 0; }
+.values svg { margin: 0 auto 22px; color: var(--wine-700); }
+.values h3 { font-size: 20px; font-weight: 400; line-height: 1.4; }
+.values p { margin-top: 10px; font-size: 11px; line-height: 1.7; opacity: .7; }
+.worldGrid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2px; }
+.worldCard { height: 470px; }
+.worldCard:not(:first-child) img { filter: grayscale(1); }
+.worldCard:hover img { filter: grayscale(0); }
+.worldCard .cardCaption { padding: 30px; }
+.worldCard h3 { font-size: clamp(25px, 2.6vw, 39px); display: flex; justify-content: space-between; align-items: center; }
+.aboutLayout { display: grid; grid-template-columns: 1fr 1.15fr; align-items: center; gap: 10%; max-width: 1100px; }
+.aboutImage { height: 510px; overflow: hidden; border: 1px solid var(--gold-400); padding: 10px; }
+.aboutImage img { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+.socialGrid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.socialCard { aspect-ratio: 4/5; overflow: hidden; position: relative; }
+.socialCard > svg { position: absolute; bottom: 15px; right: 15px; color: white; filter: drop-shadow(0 1px 5px #000); }
+.socialNote { font-size: 10px; letter-spacing: .15em; text-align: center; margin-top: 25px; color: var(--gold-300); }
+.journalGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px; }
+.journalCard > img { width: 100%; height: 240px; object-fit: cover; object-position: center 35%; }
+.journalCard > div { padding: 24px 0; }
+.journalCard svg { color: var(--gold-600); }
+.journalCard h3 { font-size: 24px; font-weight: 400; margin: 12px 0; }
+.journalCard p { font-size: 13px; line-height: 1.9; opacity: .8; }
+@keyframes enter { from { opacity: .5; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@supports (animation-timeline: view()) {
+  .heading, .editorialIntro, .values, .journalCard { animation: enter ease both; animation-timeline: view(); animation-range: entry 0% entry 25%; }
+}
+@media (min-width: 1100px) { .storyCard:nth-child(even) { margin-top: 28px; margin-bottom: -28px; } .storyGrid { padding-bottom: 28px; } }
+@media (max-width: 1100px) {
+  .editorialLayout, .templeLayout { grid-template-columns: 1fr; gap: 35px; }
+  .editorialIntro { max-width: 650px; }
+  .categoryRow { gap: 20px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .category > div { max-width: 150px; margin-inline: auto; }
+  .productGrid, .storyGrid, .collectionGrid { gap: 14px; }
+  .cardCaption { padding: 19px 14px; }
+  .worldCard { height: 370px; }
+  .values { padding-inline: 10px; }
+  .values > div { padding-inline: 12px; }
+}
+@media (max-width: 700px) {
+  .container { width: 90%; }
+  .heading { margin-bottom: 28px; }
+  .heading h2 { font-size: 31px; }
+  .heading p { font-size: 12px; }
+  .storyGrid { display: flex; gap: 13px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
+  .storyCard { flex: 0 0 76%; scroll-snap-align: start; }
+  .storyCard .cardCaption h3 { font-size: 28px; }
+  .storyCard .cardCaption { padding: 25px; }
+  .editGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .editCard:nth-child(3) { display: none; }
+  .editCard .cardCaption h3 { font-size: 19px; }
+  .collectionTabs { gap: 20px; }
+  .categoryRow { gap: 22px 12px; }
+  .category > div { padding: 3px; margin-bottom: 10px; }
+  .category span { font-size: 10px; }
+  .productGrid, .collectionGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px; }
+  .productGrid :global(.luxury-card) h3 { font-size: 13px; }
+  .productGrid :global(.luxury-card) :global(.opacity-0) { opacity: 1; }
+  .productGrid :global(.luxury-card) :global(.absolute.inset-0.opacity-0) { opacity: 0; }
+  .previewInfo { padding: 12px; }
+  .previewInfo h3 { font-size: 16px; }
+  .previewInfo p { font-size: 10px; }
+  .previewInfo .eyebrow { letter-spacing: .1em; }
+  .collectionCard h3 { font-size: 21px; }
+  .collectionCard > div { margin-bottom: 15px; }
+  .collectionCard .textLink { font-size: 10px; }
+  .templeGrid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 20px; padding-bottom: 12px; }
+  .templeCard { flex: 0 0 75%; scroll-snap-align: start; }
+  .gopuramImage .cardCaption h3 { font-size: 22px; }
+  .campaign { min-height: 410px; }
+  .campaign > img { width: 100%; }
+  .campaign::after { background: linear-gradient(90deg, #032b2de8, #032b2d55); }
+  .campaignCopy { padding-block: 75px; }
+  .campaignCopy h2 { max-width: 340px; }
+  .values { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 20px 10px; gap: 12px 0; }
+  .values > div:nth-child(2) { border-right: 0; }
+  .values h3 { font-size: 17px; }
+  .values p { font-size: 10px; }
+  .values svg { width: 30px; margin-bottom: 15px; }
+  .worldGrid { grid-template-columns: 1fr 1fr; }
+  .worldCard:first-child { grid-column: 1 / -1; height: 330px; }
+  .worldCard { height: 280px; }
+  .worldCard .cardCaption { padding: 20px 15px; }
+  .worldCard h3 { font-size: 23px; }
+  .worldCard h3 svg { width: 16px; flex-shrink: 0; }
+  .aboutLayout { grid-template-columns: 1fr; gap: 35px; }
+  .aboutImage { height: 420px; }
+  .socialGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .journalGrid { grid-template-columns: 1fr; gap: 20px; }
+  .journalCard { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; align-items: start; }
+  .journalCard > img { height: 235px; }
+  .journalCard > div { padding: 0; }
+  .journalCard h3 { font-size: 22px; }
+  .journalCard p { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing *, .landing *::before, .landing *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* Device sizing only: retain the existing landing-page sections and palette. */
+@media (min-width: 701px) and (max-width: 1023px) {
+  .storyGrid, .collectionGrid, .productGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .socialGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .values { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 0; }
+  .values > div:nth-child(2) { border-right: 0; }
+}
+@media (max-width: 380px) {
+  .categoryRow { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .journalCard { grid-template-columns: 1fr; }
+  .journalCard > img { height: 260px; }
+  .previewInfo p { flex-wrap: wrap; gap: 4px; }
+}
+@media (max-width: 767px) {
+  .landing :global(.sc-hero) { height: clamp(190px, 50vw, 360px); min-height: 0; }
+  .landing :global(.sc-hero) picture img { object-fit: contain; }
+  .landing :global(.sc-hero) h1 { font-size: clamp(23px, 5vw, 34px); }
+}

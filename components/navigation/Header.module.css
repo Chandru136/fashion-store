@@ -1,0 +1,34 @@
+﻿.menuButton { display: none; }
+.drawer { position: fixed; inset: 0 auto 0 0; margin: 0; width: min(390px, 92vw); max-width: 100%; height: 100dvh; max-height: 100dvh; padding: 0 20px max(25px, env(safe-area-inset-bottom)); border: 0; background: var(--ivory-50); color: var(--wine-900); overflow-y: auto; overscroll-behavior: contain; }
+.drawer::backdrop { background: #001c22a6; }
+.drawerHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: sticky; top: 0; background: var(--ivory-50); padding-block: 12px; border-bottom: 1px solid var(--ivory-300); z-index: 1; }
+.drawerHeader h2 { font-size: 21px; }
+.drawer button { cursor: pointer; }
+.drawerHeader button, .drawerSearch button { display: grid; place-items: center; min-width: 44px; min-height: 44px; }
+.drawerSearch { display: flex; align-items: center; margin-block: 20px; border: 1px solid var(--ivory-300); }
+.drawerSearch input { width: 100%; padding: 12px; font-size: 16px; background: transparent; }
+.quickLinks { border-bottom: 1px solid var(--ivory-300); padding-bottom: 12px; margin-bottom: 12px; }
+.quickLinks a, .quickLinks button, .accountLinks a, .accountLinks button { width: 100%; min-height: 46px; display: flex; align-items: center; gap: 12px; font-size: 14px; text-align: left; }
+.quickLinks span { margin-left: auto; background: var(--ivory-200); border-radius: 50%; min-width: 25px; padding: 3px; text-align: center; }
+.menuLink { display: flex; align-items: center; min-height: 48px; font-size: 14px; font-weight: 600; }
+.categoryGroup { border-bottom: 1px solid var(--ivory-300); }
+.categoryGroup summary { list-style: none; min-height: 50px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-size: 12px; letter-spacing: .07em; }
+.categoryGroup summary::-webkit-details-marker { display: none; }
+.categoryGroup[open] summary svg { transform: rotate(180deg); }
+.submenu { padding: 0 10px 14px; }
+.submenu a { display: flex; align-items: center; min-height: 44px; font-size: 13px; line-height: 1.5; }
+.submenu h3, .accountLinks h3 { font-size: 16px; font-weight: 600; margin: 15px 0 8px; }
+.accountLinks { padding-top: 10px; }
+.drawer a:hover, .drawer button:hover { color: var(--gold-600); }
+.drawer :focus-visible { outline: 2px solid var(--gold-600); outline-offset: 2px; }
+@media (max-width: 1279px) {
+  .headerRow { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 8px; }
+  .menuButton { display: grid; place-items: center; width: 44px; height: 44px; color: var(--gold-300); }
+  .brand { justify-self: center; justify-content: center; }
+  .brand > div:first-child { display: none; }
+  .brand > div:last-child { text-align: center; }
+  .brand :global(.font-brand-title) { font-size: clamp(21px, 4vw, 27px); }
+  .accountButton { justify-content: center; width: 44px; min-height: 44px; }
+  .accountButton > svg:last-child:not(:first-child) { display: none; }
+  .headerRow > div:last-child { justify-self: end; }
+}

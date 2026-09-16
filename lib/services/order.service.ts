@@ -19,7 +19,7 @@ export interface CreateOrderParams {
   billingCity: string;
   billingState: string;
   billingPincode: string;
-  paymentMethod: "COD" | "ONLINE";
+  paymentMethod: "ONLINE";
   couponCode?: string;
 }
 
@@ -42,7 +42,8 @@ export async function createOrderFromCart(params: CreateOrderParams) {
     couponCode,
   } = params;
 
-  const provider = paymentMethod === "ONLINE" ? paymentConfig().provider : "COD";
+  if (paymentMethod !== "ONLINE") throw new Error("Only online payment is supported.");
+  const provider = paymentConfig().provider;
   return prisma.$transaction(async (tx) => {
   await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;
   const existing = await tx.order.findUnique({ where: { checkoutKey: params.checkoutKey }, include: { items: true, payments: true } });
@@ -158,7 +159,7 @@ export async function createOrderFromCart(params: CreateOrderParams) {
         orderNumber,
         checkoutKey: params.checkoutKey,
         userId,
-        status: paymentMethod === "COD" ? OrderStatus.CONFIRMED : OrderStatus.PENDING,
+        status: OrderStatus.PENDING,
         subtotal,
         discount,
         shipping,
@@ -167,7 +168,7 @@ export async function createOrderFromCart(params: CreateOrderParams) {
         paymentStatus: PaymentStatus.PENDING,
         paymentMethod,
         couponCode: couponCode?.toUpperCase() || null,
-        expiresAt: paymentMethod === "ONLINE" ? new Date(Date.now() + 30 * 60 * 1000) : null,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
         shippingName,
         shippingPhone,
         shippingAddress,

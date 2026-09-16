@@ -4,7 +4,7 @@ export const CreateOrderSchema = z.object({
   checkoutKey: z.string().uuid(),
   shippingAddressId: z.string().min(1, "Select a shipping address"),
   billingAddressId: z.string().min(1, "Select a billing address").optional(),
-  paymentMethod: z.enum(["COD", "ONLINE"]).default("COD"),
+  paymentMethod: z.literal("ONLINE").default("ONLINE"),
   couponCode: z.string().trim().max(40).optional(),
 });
 

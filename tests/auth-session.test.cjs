@@ -14,7 +14,7 @@ function load(file, dependencies, env = process.env) {
   return context.exports;
 }
 
-test('manual and Google sessions work for COD/online checkout and are removed on logout', async () => {
+test('manual and Google sessions work for online checkout and are removed on logout', async () => {
   const jose = await import('jose');
   const config = load('lib/session-config.ts', {});
   const schema = load('lib/validations/auth.ts', { zod: require('zod') });
@@ -32,17 +32,20 @@ test('manual and Google sessions work for COD/online checkout and are removed on
   let orders = 0;
   const orderActions = load('app/actions/order.actions.ts', { '@/lib/session-config': config, '@/lib/services/order.service': { createOrderFromCart: async input => { orders++; assert.equal(input.userId, user.id); return { id: 'sc-test-order', orderNumber: 'SC-TEST', paymentMethod: input.paymentMethod }; } }, '@/lib/validations/order': orderSchema, 'next/headers': { cookies: async () => cookieStore }, '@/lib/db': { prisma }, 'next/cache': { revalidatePath: () => {} }, '@/lib/auth': auth, '@/lib/mailer': { sendEmail: async () => {} }, '@/lib/email-templates': {} });
   const input = { checkoutKey: 'b76ae7cf-7705-4c59-932f-dba22a56bd73', shippingAddressId: 'sc-address' };
-  async function checkoutBoth() { for (const paymentMethod of ['COD', 'ONLINE']) { const result = await orderActions.createOrderAction({ ...input, paymentMethod }); assert.equal(result.success, true); assert.equal(result.paymentMethod, paymentMethod); } }
+  async function checkoutOnline() { const result = await orderActions.createOrderAction({ ...input, paymentMethod: 'ONLINE' }); assert.equal(result.success, true); assert.equal(result.paymentMethod, 'ONLINE'); }
   assert.equal((await actions.loginUser({ email: user.email, password: 'wrong' })).success, false);
   assert.equal(jar.has(config.SESSION_COOKIE_NAME), false);
   assert.equal((await actions.loginUser({ email: user.email, password: 'valid-password' })).success, true);
   assert.equal(writes.at(-1).options.httpOnly, true); assert.equal(writes.at(-1).options.path, '/');
   const manualToken = jar.get(config.SESSION_COOKIE_NAME);
   assert.equal((await auth.verifySessionToken(manualToken)).id, user.id);
-  await checkoutBoth();
+  const beforeRejectedPayment = orders;
+  assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'OFFLINE' })).success, false);
+  assert.equal(orders, beforeRejectedPayment);
+  await checkoutOnline();
   jar.set('aarna_session_user', manualToken); jar.set('google_oauth_state', 'pending');
   await actions.logoutUser(); assert.equal(jar.size, 0);
-  assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'COD' })).success, false);
+  assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'ONLINE' })).success, false);
   jar.set('aarna_session_user', manualToken);
   assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'ONLINE' })).success, false);
   jar.clear(); jar.set('google_oauth_state', 'valid-state');
@@ -51,13 +54,30 @@ test('manual and Google sessions work for COD/online checkout and are removed on
   assert.equal(invalid.cookies.get(config.SESSION_COOKIE_NAME), undefined);
   const response = await google.GET(new NextRequest('http://localhost/api/auth/google/callback?code=test&state=valid-state'));
   const cookie = response.cookies.get(config.SESSION_COOKIE_NAME); assert(cookie); assert.equal(cookie.path, '/'); assert.equal(cookie.httpOnly, true);
-  jar.set(config.SESSION_COOKIE_NAME, cookie.value); await checkoutBoth();
-  user.status = 'BLOCKED'; assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'COD' })).success, false); user.status = 'ACTIVE';
+  jar.set(config.SESSION_COOKIE_NAME, cookie.value); await checkoutOnline();
+  user.status = 'BLOCKED'; assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'ONLINE' })).success, false); user.status = 'ACTIVE';
   jar.set(config.SESSION_COOKIE_NAME, 'tampered'); assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'ONLINE' })).success, false);
   const expired = await new jose.SignJWT({ ...user }).setProtectedHeader({ alg: 'HS256' }).setExpirationTime(0).sign(new TextEncoder().encode('test-only-secret-not-used-by-the-application'));
-  jar.set(config.SESSION_COOKIE_NAME, expired); assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'COD' })).success, false);
+  jar.set(config.SESSION_COOKIE_NAME, expired); assert.equal((await orderActions.createOrderAction({ ...input, paymentMethod: 'ONLINE' })).success, false);
   const logout = load('app/api/auth/logout/route.ts', { '@/lib/session-config': config, 'next/server': { NextRequest, NextResponse } });
   const cleared = await logout.POST(new NextRequest('http://localhost/api/auth/logout', { method: 'POST', headers: { 'X-Sudha-Logout': '1' } }));
   for (const name of config.SESSION_COOKIES_TO_CLEAR) { const c = cleared.cookies.get(name); assert.equal(c.value, ''); assert.equal(c.maxAge, 0); assert.equal(c.path, '/'); }
-  assert.equal(orders, 4);
+  assert.equal(orders, 2);
+});
+
+test('checkout defaults to online payment and rejects unsupported payment methods', async () => {
+  const { CreateOrderSchema } = load('lib/validations/order.ts', { zod: require('zod') });
+  const input = { checkoutKey: 'b76ae7cf-7705-4c59-932f-dba22a56bd73', shippingAddressId: 'sc-address' };
+  assert.equal(CreateOrderSchema.parse(input).paymentMethod, 'ONLINE');
+  for (const paymentMethod of ['OFFLINE', '', null, 1]) {
+    assert.equal(CreateOrderSchema.safeParse({ ...input, paymentMethod }).success, false);
+  }
+  let databaseCalls = 0;
+  const { createOrderFromCart } = load('lib/services/order.service.ts', {
+    '@/lib/db': { prisma: { $transaction: async () => { databaseCalls++; } } },
+    '@prisma/client': {}, '@/lib/services/coupon.service': {}, crypto: require('node:crypto'),
+    '@/lib/payments/razorpay': { paymentConfig: () => { throw Error('Provider must not be called for invalid payment methods'); } },
+  });
+  await assert.rejects(() => createOrderFromCart({ paymentMethod: 'OFFLINE' }), /Only online payment is supported/);
+  assert.equal(databaseCalls, 0);
 });

@@ -295,7 +295,7 @@ model Order {
   tax           Float         @default(0.0)
   total         Float
   paymentStatus PaymentStatus @default(PENDING)
-  paymentMethod String        @default("COD") // COD | ONLINE
+  paymentMethod String        @default("ONLINE") // Online payment only
   couponCode    String?
   shippingName  String
   shippingPhone String
@@ -349,7 +349,7 @@ model OrderItem {
 model Payment {
   id            String        @id @default(cuid())
   orderId       String
-  provider      String        // COD | RAZORPAY | STRIPE | MOCK
+  provider      String        // RAZORPAY | STRIPE | MOCK
   transactionId String?       @unique
   gatewayOrderId String?      @unique
   amountPaise   Int?

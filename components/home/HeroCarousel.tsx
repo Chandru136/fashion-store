@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -22,6 +22,15 @@ const AUTOPLAY_INTERVAL = 5000;
 
 export function HeroCarousel({ banners }: HeroCarouselProps) {
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setPaused(preference.matches);
+    sync();
+    preference.addEventListener("change", sync);
+    return () => preference.removeEventListener("change", sync);
+  }, []);
 
   const goTo = useCallback(
     (index: number) => {
@@ -34,10 +43,10 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   const prev = useCallback(() => goTo(active - 1), [active, goTo]);
 
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (banners.length <= 1 || paused) return;
     const timer = setInterval(next, AUTOPLAY_INTERVAL);
     return () => clearInterval(timer);
-  }, [next, banners.length]);
+  }, [next, banners.length, paused]);
 
   if (!banners || banners.length === 0) return null;
 
@@ -50,6 +59,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             idx === active ? "opacity-100 z-10" : "opacity-0 z-0"
           }`}
           aria-hidden={idx !== active}
+          inert={idx !== active}
         >
           {/* Full-bleed image — no boxed card, no border, edge to edge */}
           <picture>
@@ -58,17 +68,17 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             )}
             <img
               src={banner.desktopImage}
-              alt={banner.title}
+              alt={banner.title && !/^b\d+$/i.test(banner.title) ? banner.title : "Sudha Collections celebration collection"}
               className="w-full h-full object-cover"
               loading={idx === 0 ? "eager" : "lazy"}
             />
           </picture>
 
           {/* Minimal gradient — just enough for text legibility, not a heavy overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-wine-950/70 via-wine-900/10 to-transparent sm:bg-gradient-to-r sm:from-wine-950/60 sm:via-wine-900/10 sm:to-transparent" />
+          {banner.title.trim() && !/^b\d+$/i.test(banner.title) && <div className="absolute inset-0 bg-gradient-to-t from-wine-950/70 via-wine-900/10 to-transparent sm:bg-gradient-to-r sm:from-wine-950/60 sm:via-wine-900/10 sm:to-transparent" />}
 
           {/* Text block — bottom-left on mobile, left-third on desktop, Pothys-style restraint */}
-          <div className="absolute inset-0 flex items-end sm:items-center">
+          <div className={`absolute inset-0 flex items-end sm:items-center ${!banner.title.trim() || /^b\d+$/i.test(banner.title) ? "sr-only" : ""}`}>
             <div className="max-w-7xl mx-auto px-6 sm:px-10 w-full">
               <div className="max-w-md space-y-3 pb-10 sm:pb-0 text-ivory-50">
                 {banner.subtitle && (
@@ -77,7 +87,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                   </span>
                 )}
                 <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal leading-tight">
-                  {banner.title}
+                  {banner.title && !/^b\d+$/i.test(banner.title) ? banner.title : "Sudha Collections — tradition, beautifully reimagined"}
                 </h1>
                 {banner.buttonText &&
                   banner.buttonText.trim().toLowerCase() !== "shop collection" &&
@@ -94,12 +104,16 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
               </div>
             </div>
           </div>
+          {(!banner.title.trim() || /^b\d+$/i.test(banner.title)) && <Link href={banner.buttonUrl || "/products"} className="absolute inset-0" aria-label="Shop the Sudha Collections banner collection" />}
         </div>
       ))}
 
       {/* Arrow navigation — subtle, appears on hover on desktop */}
       {banners.length > 1 && (
         <>
+          <button type="button" onClick={() => setPaused(!paused)} aria-label={paused ? "Play banner slideshow" : "Pause banner slideshow"} className="absolute bottom-4 right-4 z-20 grid h-9 w-9 place-items-center rounded-full bg-ivory-50/90 text-wine-900">
+            {paused ? <Play size={15} /> : <Pause size={15} />}
+          </button>
           <button
             onClick={prev}
             aria-label="Previous slide"

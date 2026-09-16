@@ -3,7 +3,9 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Heart, ShoppingBag, User, LogOut, ChevronDown, X } from "lucide-react";
+import { Search, Heart, ShoppingBag, User, LogOut, ChevronDown, Menu } from "lucide-react";
+import { MobileMenu } from "./MobileMenu";
+import styles from "./Header.module.css";
 import { MegaMenu } from "./MegaMenu";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -21,7 +23,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSignOutOpen, setIsSignOutOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartData, setCartData] = useState<any>({ items: [], itemCount: cartItemCount, subtotal: 0, shipping: 0, tax: 0, grandTotal: 0 });
   const router = useRouter();
 
@@ -62,9 +64,10 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
       <SignOutDialog open={isSignOutOpen} onClose={() => setIsSignOutOpen(false)} />
       <AnnouncementBar />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4">
+      <div className={`${styles.headerRow} max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4`}>
+        <button type="button" className={styles.menuButton} onClick={() => { setIsUserMenuOpen(false); setIsMobileMenuOpen(true); }} aria-label="Open menu" aria-haspopup="dialog" aria-expanded={isMobileMenuOpen} aria-controls="mobile-navigation"><Menu size={24} /></button>
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/" className={`${styles.brand} flex items-center gap-2 group`} aria-label="Sudha Collections home">
           <div className="w-9 h-9 sm:w-10 sm:h-10 wine-gradient-bg rounded-full flex items-center justify-center border gold-border shadow-md group-hover:scale-105 transition-transform">
             <img src="/peacock-feather.svg" alt="" className="h-10 w-8" />
           </div>
@@ -79,12 +82,13 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
         </Link>
 
         {/* Search Bar with Autocomplete */}
-        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl relative hidden md:block">
+        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-xl relative hidden xl:block">
           <div className="relative">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search products"
               placeholder="Search for Kanchipuram Silks, Banarasi, Lehengas, Sherwanis..."
               className="w-full pl-10 pr-24 py-2.5 bg-ivory-100 border border-ivory-300 rounded-full text-xs text-wine-900 placeholder-stone-400 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all shadow-inner"
             />
@@ -100,36 +104,32 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
 
         {/* User Account / Wishlist / Cart Controls */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-4">
-          <button
-            onClick={() => setIsMobileSearchOpen((open) => !open)}
-            className="md:hidden grid h-9 w-9 place-items-center rounded-full text-wine-800 transition hover:bg-ivory-100"
-            aria-label={isMobileSearchOpen ? "Close search" : "Search products"}
-          >
-            {isMobileSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-          </button>
           {/* User Account Menu */}
           <div className="relative">
             {user ? (
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-wine-900 hover:text-gold-600 transition-colors p-1"
+                aria-label="Customer account"
+                aria-expanded={isUserMenuOpen}
+                aria-controls="customer-account-menu"
+                className={`${styles.accountButton} flex items-center gap-1.5 text-xs font-semibold text-wine-900 hover:text-gold-600 transition-colors p-1`}
               >
                 <div className="w-7 h-7 bg-ivory-200 border gold-border rounded-full flex items-center justify-center text-wine-800 font-bold">
                   {user.name.charAt(0)}
                 </div>
-                <span className="hidden sm:inline">{user.name.split(" ")[0]}</span>
+                <span className="hidden xl:inline">{user.name.split(" ")[0]}</span>
                 <ChevronDown className="w-3 h-3 text-stone-500" />
               </button>
             ) : (
-              <Link href="/login" className="flex items-center gap-1.5 text-xs font-semibold text-wine-900 hover:text-gold-600 transition-colors">
+              <Link href="/login" aria-label="Customer login" className={`${styles.accountButton} flex items-center gap-1.5 text-xs font-semibold text-wine-900 hover:text-gold-600 transition-colors`}>
                 <User className="w-5 h-5 text-wine-800" />
-                <span className="hidden sm:inline">Sign In</span>
+                <span className="hidden xl:inline">Sign In</span>
               </Link>
             )}
 
             {/* Dropdown Menu */}
             {isUserMenuOpen && user && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-ivory-50 border gold-border rounded-md shadow-xl py-2 z-50 text-xs animate-fade-in">
+              <div id="customer-account-menu" onClick={() => setIsUserMenuOpen(false)} className="absolute right-0 top-full mt-2 w-48 bg-ivory-50 border gold-border rounded-md shadow-xl py-2 z-50 text-xs animate-fade-in">
                 <div className="px-3 py-2 border-b border-stone-100">
                   <p className="font-semibold text-wine-900">{user.name}</p>
                   <p className="text-[10px] text-stone-500">{user.email}</p>
@@ -159,7 +159,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
           </div>
 
           {/* Wishlist */}
-          <Link href="/wishlist" className="relative p-1 text-wine-900 hover:text-gold-600 transition-colors" title="Wishlist">
+          <Link href="/wishlist" className="hidden xl:block relative p-1 text-wine-900 hover:text-gold-600 transition-colors" title="Wishlist">
             <Heart className="w-5 h-5 text-wine-800" />
             {wishlistCount > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold-500 text-wine-900 font-bold text-[9px] rounded-full flex items-center justify-center shadow">
@@ -171,10 +171,11 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
           {/* Cart Trigger */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="relative flex items-center gap-2 wine-gradient-bg text-gold-300 px-3.5 py-2 rounded-full gold-border shadow hover:brightness-110 transition-all text-xs font-semibold"
+            aria-label="Open shopping bag"
+            className="relative hidden xl:flex items-center gap-2 wine-gradient-bg text-gold-300 px-3.5 py-2 rounded-full gold-border shadow hover:brightness-110 transition-all text-xs font-semibold"
           >
             <ShoppingBag className="w-4 h-4 text-gold-400" />
-            <span className="hidden sm:inline">Bag</span>
+            <span className="hidden xl:inline">Bag</span>
             <span className="w-5 h-5 bg-gold-400 text-wine-900 font-bold text-[10px] rounded-full flex items-center justify-center shadow">
               {cartData.itemCount ?? cartItemCount}
             </span>
@@ -182,22 +183,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
         </div>
       </div>
 
-      {isMobileSearchOpen && (
-        <form onSubmit={handleSearchSubmit} className="md:hidden border-t border-ivory-300 bg-ivory-50 px-3 py-3">
-          <div className="relative mx-auto max-w-7xl">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-            <input
-              autoFocus
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search silks, sarees, lehengas..."
-              className="w-full rounded-full border border-ivory-300 bg-ivory-100 py-3 pl-10 pr-24 text-sm text-wine-900 placeholder-stone-400 outline-none focus:border-gold-500"
-            />
-            <button type="submit" className="absolute right-1 top-1 bottom-1 rounded-full wine-gradient-bg px-4 text-xs font-bold text-gold-300">Search</button>
-          </div>
-        </form>
-      )}
+      <MobileMenu open={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} user={user} cartCount={cartData.itemCount ?? cartItemCount} wishlistCount={wishlistCount} onOpenCart={() => setIsCartOpen(true)} onSignOut={handleLogout} />
 
       {/* Mega Navigation Bar */}
       <MegaMenu />

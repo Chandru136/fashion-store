@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Truck, CreditCard, Banknote, Lock, MapPin, Plus } from "lucide-react";
+import { Truck, CreditCard, Lock, MapPin, Plus } from "lucide-react";
 import { openOrderPayment } from "@/lib/payments/checkout.client";
 import { createOrderAction } from "@/app/actions/order.actions";
 import { Loader } from "@/components/common/Loader";
@@ -24,7 +24,6 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
   const [shippingAddressId, setShippingAddressId] = useState(addresses[0]?.id || "");
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
   const [billingAddressId, setBillingAddressId] = useState(addresses[0]?.id || "");
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "ONLINE">("COD");
   const [couponCode, setCouponCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -51,17 +50,13 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
         checkoutKey: checkoutKey.current,
         shippingAddressId,
         billingAddressId: billingSameAsShipping ? undefined : billingAddressId,
-        paymentMethod,
+        paymentMethod: "ONLINE",
         couponCode: couponCode || undefined,
       });
       if (!res.success || !res.orderId) throw new Error(res.error || "Order placement failed");
-      if (res.paymentMethod === "ONLINE") {
-        pendingOrder.current = res.orderId;
-        const paid = await openOrderPayment(res.orderId);
-        router.push(paid ? `/order-success?orderId=${res.orderId}` : `/orders/${res.orderId}`);
-      } else {
-        router.push(`/order-success?orderId=${res.orderId}`);
-      }
+      pendingOrder.current = res.orderId;
+      const paid = await openOrderPayment(res.orderId);
+      router.push(paid ? `/order-success?orderId=${res.orderId}` : `/orders/${res.orderId}`);
     } catch (error) {
       setErrorMsg(error instanceof Error ? error.message : "Order placement failed. Please retry.");
     } finally {
@@ -125,46 +120,12 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
             <Lock className="w-5 h-5 text-gold-600" /> 3. Payment Method
           </h2>
 
-          <div className="space-y-3">
-            <label className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${
-              paymentMethod === "COD" ? "border-gold-500 bg-ivory-50 shadow-sm" : "border-stone-200"
-            }`}>
-              <div className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name="payment"
-                  disabled={isSubmitting}
-                  checked={paymentMethod === "COD"}
-                  onChange={() => setPaymentMethod("COD")}
-                  className="w-4 h-4 text-gold-600"
-                />
-                <div>
-                  <p className="font-bold text-xs text-wine-900 flex items-center gap-1.5">
-                    <Banknote className="w-4 h-4 text-emerald-700" /> Cash on Delivery (COD)
-                  </p>
-                  <p className="text-[11px] text-stone-500">Pay cash or UPI at your doorstep upon order delivery.</p>
-                </div>
-              </div>
-            </label>
-
-            <label className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === "ONLINE" ? "border-gold-500 bg-ivory-50 shadow-sm" : "border-stone-200"}`}>
-              <div className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name="payment"
-                  checked={paymentMethod === "ONLINE"}
-                  disabled={isSubmitting}
-                  onChange={() => setPaymentMethod("ONLINE")}
-                  className="w-4 h-4 text-gold-600"
-                />
-                <div>
-                  <p className="font-bold text-xs text-wine-900 flex items-center gap-1.5">
-                    <CreditCard className="w-4 h-4 text-wine-800" /> Online Payment (Razorpay)
-                  </p>
-                  <p className="text-[11px] text-stone-500">Pay securely using UPI, cards, netbanking or wallets.</p>
-                </div>
-              </div>
-            </label>
+          <div className="flex items-center gap-3 p-4 rounded-lg border border-gold-500 bg-ivory-50 shadow-sm">
+            <CreditCard className="w-5 h-5 text-wine-800" />
+            <div>
+              <p className="font-bold text-xs text-wine-900">Online Payment (Razorpay)</p>
+              <p className="text-[11px] text-stone-500">Pay securely using UPI, cards, netbanking or wallets.</p>
+            </div>
           </div>
         </div>
 
@@ -223,12 +184,10 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
             {isSubmitting ? (
               <>
                 <Loader size="xs" color="gold" />
-                <span>{paymentMethod === "ONLINE" ? "Opening Payment Gateway..." : "Securing Your Order..."}</span>
+                <span>Opening Payment Gateway...</span>
               </>
-            ) : paymentMethod === "ONLINE" ? (
-              "Pay Securely"
             ) : (
-              "Place Order"
+              "Pay Securely"
             )}
           </button>
         </div>

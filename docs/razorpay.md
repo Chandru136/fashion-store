@@ -1,6 +1,6 @@
 # Razorpay checkout
 
-Online Payment is enabled on checkout. Orders use server-calculated prices, persist a unique checkout key, reserve stock, and remain PENDING until a captured payment has been verified. COD remains available.
+Online Payment is enabled on checkout. Orders use server-calculated prices, persist a unique checkout key, reserve stock, and remain PENDING until a captured payment has been verified. Checkout supports online payment only.
 
 ## Local dummy payments (no API account)
 
