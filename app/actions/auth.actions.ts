@@ -121,6 +121,6 @@ export async function loginUser(input: LoginInput): Promise<AuthResult> {
 
 export async function logoutUser() {
   const cookieStore = await cookies();
-  for (const name of SESSION_COOKIES_TO_CLEAR) cookieStore.delete(name);
+  cookieStore.delete("aarna_session_user");
   return { success: true };
 }
