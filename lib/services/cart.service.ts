@@ -77,10 +77,11 @@ export async function getOrCreateCart(userId?: string, sessionId?: string) {
     };
   });
 
-  const tax = Math.round(cart.items.reduce((sum, item) => {
+  const rawTax = cart.items.reduce((sum, item) => {
     const unitPrice = item.variant.salePrice ?? item.variant.price;
     return sum + unitPrice * item.quantity * (item.variant.product.tax / 100);
-  }, 0));
+  }, 0);
+  const tax = Math.round(rawTax);
   const shipping = subtotal > 2000 || items.length === 0 ? 0 : 150; // Free shipping over ₹2000
   const grandTotal = subtotal + tax + shipping;
 
@@ -89,6 +90,7 @@ export async function getOrCreateCart(userId?: string, sessionId?: string) {
     items,
     itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
     subtotal,
+    rawTax,
     totalDiscount,
     tax,
     shipping,

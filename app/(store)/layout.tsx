@@ -1,3 +1,4 @@
+import { getStorefrontCoupons } from "@/lib/services/storefront-coupon.service";
 
 import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
@@ -12,11 +13,11 @@ export default async function StorefrontLayout({ children }: { children: React.R
 
   // Verifies the signature — an edited/forged cookie value now resolves to
   // null instead of being trusted, unlike the old JSON.parse() approach.
-  const user = await verifySessionToken(token);
+  const [user, coupons] = await Promise.all([verifySessionToken(token), getStorefrontCoupons().catch(() => [])]);
 
   return (
     <div className="sc-store min-h-screen flex flex-col bg-ivory-100 font-sans">
-      <Header user={user} />
+      <Header user={user} coupons={coupons} />
       <main className="flex-1">{children}</main>
       <Footer />
     </div>

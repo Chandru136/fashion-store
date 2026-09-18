@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+import { pagination, choice, value, dateSorts, type ListParams } from "@/lib/listing";
 import { prisma } from "@/lib/db";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { validateCoupon } from "@/lib/services/coupon.service";
@@ -220,9 +222,17 @@ export async function createOrderFromCart(params: CreateOrderParams) {
   }, { timeout: 15000 });
 }
 
-export async function getUserOrders(userId: string) {
-  return prisma.order.findMany({
-    where: { userId },
+export async function getUserOrders(userId: string, params: ListParams = {}) {
+  const q = value(params, "q");
+  const status = choice(params, "status", Object.values(OrderStatus)) as OrderStatus | "";
+  const sort = choice(params, "sort", dateSorts.map(o => o.value), "newest");
+  const where: Prisma.OrderWhereInput = { userId,
+    ...(status ? { status } : {}),
+    ...(q ? { OR: [{ orderNumber: { contains: q, mode: "insensitive" } }, { items: { some: { productName: { contains: q, mode: "insensitive" } } } }] } : {}),
+  };
+  const paging = pagination(await prisma.order.count({ where }), value(params, "page"), 10);
+  const orders = await prisma.order.findMany({
+    where, skip: paging.skip, take: paging.take,
     include: {
       items: {
         include: {
@@ -235,8 +245,9 @@ export async function getUserOrders(userId: string) {
       },
       payments: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: sort === "oldest" ? "asc" : "desc" }, { id: "asc" }],
   });
+  return { orders, ...paging };
 }
 
 export async function getOrderById(orderId: string, userId?: string) {

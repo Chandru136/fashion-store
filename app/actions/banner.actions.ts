@@ -1,5 +1,6 @@
 "use server";
 
+import { value, choice, type ListParams } from "@/lib/listing";
 import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 
 import { prisma } from "@/lib/db";
@@ -26,10 +27,15 @@ type ActionResult =
   | { success: true }
   | { success: false; error: string; fieldErrors?: Partial<Record<keyof BannerInput, string>> };
 
-export async function getAllBanners() {
+export async function getAllBanners(params: ListParams = {}) {
   await requireAdmin();
+  const q = value(params, "q");
+  const status = choice(params, "status", ["ACTIVE", "INACTIVE"]);
+  const placement = choice(params, "placement", ["HERO", "PROMO"]);
+  const sort = choice(params, "sort", ["display", "title"], "display");
   return prisma.banner.findMany({
-    orderBy: [{ placement: "asc" }, { displayOrder: "asc" }, { id: "asc" }],
+    where: { ...(q ? { title: { contains: q, mode: "insensitive" } } : {}), ...(status ? { status } : {}), ...(placement ? { placement } : {}) },
+    orderBy: sort === "title" ? [{ title: "asc" }, { id: "asc" }] : [{ placement: "asc" }, { displayOrder: "asc" }, { id: "asc" }],
   });
 }
 

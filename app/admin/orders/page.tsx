@@ -1,14 +1,17 @@
+import { ListControls, Pagination } from "@/components/common/ListControls";
+import { pagination, value, choice, priceSorts, options, type ListPageProps } from "@/lib/listing";
+import { OrderStatus, type Prisma } from "@prisma/client";
 import React from "react";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { ShoppingBag, Search, Filter, Eye } from "lucide-react";
 
-export default async function AdminOrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
+export default async function AdminOrdersPage({ searchParams }: ListPageProps) {
   const sp = await searchParams;
-  const statusFilter = sp.status;
-  const searchQuery = sp.q || "";
+  const statusFilter = choice(sp, "status", Object.values(OrderStatus)) as OrderStatus | "";
+  const searchQuery = value(sp, "q");
+  const sort = choice(sp, "sort", priceSorts.map(o => o.value), "newest");
 
-  const whereClause: any = {};
+  const whereClause: Prisma.OrderWhereInput = {};
   if (statusFilter) whereClause.status = statusFilter;
   if (searchQuery) {
     whereClause.OR = [
@@ -18,14 +21,15 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
     ];
   }
 
+  const paging = pagination(await prisma.order.count({ where: whereClause }), value(sp, "page"));
   const orders = await prisma.order.findMany({
     where: whereClause,
     include: {
       user: { select: { name: true, email: true } },
       items: { select: { quantity: true } },
     },
-    orderBy: { createdAt: "desc" },
-    take: 50,
+    orderBy: [sort === "price_asc" || sort === "price_desc" ? { total: sort === "price_asc" ? "asc" : "desc" } : { createdAt: sort === "oldest" ? "asc" : "desc" }, { id: "asc" }],
+    skip: paging.skip, take: paging.take,
   });
 
   return (
@@ -35,37 +39,11 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
         <p className="text-xs text-stone-500 mt-1">Manage order statuses (PENDING → CONFIRMED → PROCESSING → PACKED → SHIPPED → DELIVERED), print invoices, and update tracking numbers.</p>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 text-xs font-semibold">
-        {["ALL", "PENDING", "CONFIRMED", "PROCESSING", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"].map((st) => (
-          <Link
-            key={st}
-            href={st === "ALL" ? "/admin/orders" : `/admin/orders?status=${st}`}
-            className={`px-3 py-1.5 rounded-full border transition-all ${
-              (st === "ALL" && !statusFilter) || statusFilter === st
-                ? "wine-gradient-bg text-gold-300 gold-border shadow-sm font-bold"
-                : "bg-ivory-50 border-stone-300 text-stone-700 hover:border-gold-500"
-            }`}
-          >
-            {st}
-          </Link>
-        ))}
-      </div>
-
       {/* Orders Table */}
       <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <form className="relative flex-1 max-w-md">
-            <input
-              type="text"
-              name="q"
-              defaultValue={searchQuery}
-              placeholder="Search by Order #, Customer Name, or Phone..."
-              className="w-full pl-9 pr-3 py-2 border border-stone-300 rounded text-xs focus:outline-none focus:border-gold-500"
-            />
-            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
-          </form>
-          <span className="text-xs font-semibold text-stone-600">Matching Orders: {orders.length}</span>
+        <div className="flex flex-col items-stretch gap-4">
+          <ListControls path="/admin/orders" params={sp} search="Order number, name or phone" sorts={priceSorts} filters={[{ key: "status", label: "Status", options: options(Object.values(OrderStatus)) }]} />
+          <span className="text-xs font-semibold text-stone-600">Matching Orders: {paging.totalCount}</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -115,6 +93,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
               ))}
             </tbody>
           </table>
+          <Pagination path="/admin/orders" params={sp} {...paging} />
         </div>
       </div>
     </div>

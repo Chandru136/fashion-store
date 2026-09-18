@@ -10,6 +10,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
+    "test:coupons": "node --import tsx --test tests/coupons.test.ts",
+    "test:listing": "node --import tsx --test tests/listing.test.ts",
     "test:payments": "node --import tsx --test tests/payments.test.ts",
     "test:payments:integration": "node --env-file=.env scripts/test-payment-db.cjs",
     "payment:check": "node scripts/check-razorpay.mjs",

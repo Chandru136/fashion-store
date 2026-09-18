@@ -25,7 +25,7 @@ export async function validateCoupon(code: string, subtotal: number, userId?: st
 
   // Check per-user limit
   if (userId && coupon.perUserLimit) {
-    const userUsageCount = await prisma.order.count({
+    const userUsageCount = await db.order.count({
       where: {
         userId,
         couponCode: coupon.code,
@@ -51,7 +51,7 @@ export async function validateCoupon(code: string, subtotal: number, userId?: st
 
   return {
     code: coupon.code,
-    discountAmount: Math.round(discountAmount),
+    discountAmount: Math.min(subtotal, Math.round(discountAmount * 100) / 100),
     discountType: coupon.discountType,
     discountValue: coupon.discountValue,
   };

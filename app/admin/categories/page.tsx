@@ -1,9 +1,14 @@
+import { ListControls } from "@/components/common/ListControls";
+import { value, type ListPageProps } from "@/lib/listing";
 import React from "react";
 import { prisma } from "@/lib/db";
-import { FolderTree, Plus } from "lucide-react";
+import { FolderTree } from "lucide-react";
 
-export default async function AdminCategoriesPage() {
+export default async function AdminCategoriesPage({ searchParams }: ListPageProps) {
+  const sp = await searchParams;
+  const q = value(sp, "q");
   const categories = await prisma.category.findMany({
+    where: q ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { slug: { contains: q, mode: "insensitive" } }] } : {},
     include: {
       parent: { select: { name: true } },
       _count: { select: { products: true } },
@@ -20,6 +25,8 @@ export default async function AdminCategoriesPage() {
         </div>
       </div>
 
+      <ListControls path="/admin/categories" params={sp} search="Search categories" />
+      {categories.length === 0 && <p>No matching categories.</p>}
       <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">

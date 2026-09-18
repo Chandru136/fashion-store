@@ -1,3 +1,6 @@
+import { ListControls, Pagination } from "@/components/common/ListControls";
+import { dateSorts, options, type ListPageProps } from "@/lib/listing";
+import { OrderStatus } from "@prisma/client";
 
 import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 import React from "react";
@@ -5,10 +8,11 @@ import { getUserOrders } from "@/lib/services/order.service";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Package, ChevronRight, Clock, Truck, CheckCircle } from "lucide-react";
+import { Package, ChevronRight } from "lucide-react";
 import { verifySessionToken } from "@/lib/auth";
 
-export default async function OrdersPage() {
+export default async function OrdersPage({ searchParams }: ListPageProps) {
+  const sp = await searchParams;
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
   if (!sessionCookie?.value) redirect("/login?callbackUrl=/orders");
@@ -17,7 +21,7 @@ export default async function OrdersPage() {
   if (!user) redirect("/login?callbackUrl=/orders");
 
   const userId = user.id;
-  const orders = await getUserOrders(userId);
+  const { orders, ...paging } = await getUserOrders(userId, sp);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 space-y-8">
@@ -26,11 +30,13 @@ export default async function OrdersPage() {
         <h1 className="font-serif text-3xl font-bold text-wine-900 mt-1">Order History & Tracking</h1>
       </div>
 
+      <ListControls path="/orders" params={sp} search="Order number or product name" sorts={dateSorts} filters={[{ key: "status", label: "Order status", options: options(Object.values(OrderStatus)) }]} />
+      <Pagination path="/orders" params={sp} {...paging} label="Orders" />
       {orders.length === 0 ? (
         <div className="text-center py-16 bg-ivory-50 rounded-xl border gold-border p-8 space-y-4 max-w-md mx-auto">
           <Package className="w-16 h-16 text-gold-500 mx-auto opacity-40" />
-          <h2 className="font-serif text-2xl font-bold text-wine-900">No orders placed yet</h2>
-          <p className="text-xs text-stone-500">Your future order history will appear here.</p>
+          <h2 className="font-serif text-2xl font-bold text-wine-900">No matching orders</h2>
+          <p className="text-xs text-stone-500">Try another search or status, or browse the collection.</p>
           <Link href="/products" className="inline-block px-8 py-3 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border shadow">
             Browse Silk Collection
           </Link>

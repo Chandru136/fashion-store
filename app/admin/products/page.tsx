@@ -1,14 +1,20 @@
+import { ListControls, Pagination } from "@/components/common/ListControls";
+import { pagination, value, choice, priceSorts, options, type ListPageProps } from "@/lib/listing";
+import type { Prisma } from "@prisma/client";
 import React from "react";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Plus } from "lucide-react";
 import { AdminProductActionsClient } from "./AdminProductActionsClient";
 
-export default async function AdminProductsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function AdminProductsPage({ searchParams }: ListPageProps) {
   const sp = await searchParams;
-  const searchQuery = sp.q || "";
+  const searchQuery = value(sp, "q");
+  const sort = choice(sp, "sort", priceSorts.map(o => o.value), "newest");
 
-  const whereClause: any = {};
+  const whereClause: Prisma.ProductWhereInput = {};
+  const statusFilter = choice(sp, "status", ["ACTIVE", "INACTIVE", "DRAFT", "ARCHIVED"]);
+  if (statusFilter) whereClause.status = statusFilter;
   if (searchQuery) {
     whereClause.OR = [
       { name: { contains: searchQuery, mode: "insensitive" } },
@@ -16,6 +22,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
     ];
   }
 
+  const paging = pagination(await prisma.product.count({ where: whereClause }), value(sp, "page"));
   const products = await prisma.product.findMany({
     where: whereClause,
     include: {
@@ -25,8 +32,8 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
       images: { orderBy: { sortOrder: "asc" }, take: 1 },
       orderItems: { select: { quantity: true } },
     },
-    orderBy: { createdAt: "desc" },
-    take: 50,
+    orderBy: [sort === "price_asc" || sort === "price_desc" ? { sellingPrice: sort === "price_asc" ? "asc" : "desc" } : { createdAt: sort === "oldest" ? "asc" : "desc" }, { id: "asc" }],
+    skip: paging.skip, take: paging.take,
   });
 
   return (
@@ -47,18 +54,9 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
 
       {/* Product List Table */}
       <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <form className="relative flex-1 max-w-md">
-            <input
-              type="text"
-              name="q"
-              defaultValue={searchQuery}
-              placeholder="Search by Product Name or SKU..."
-              className="w-full pl-9 pr-3 py-2 border border-stone-300 rounded text-xs focus:outline-none focus:border-gold-500"
-            />
-            <Search className="w-4 h-4 text-stone-400 absolute left-3 top-2.5" />
-          </form>
-          <span className="text-xs font-semibold text-stone-600">Total Products: {products.length}</span>
+        <div className="flex flex-col items-stretch gap-4">
+          <ListControls path="/admin/products" params={sp} search="Product name or SKU" sorts={priceSorts} filters={[{ key: "status", label: "Status", options: options(["ACTIVE", "INACTIVE", "DRAFT", "ARCHIVED"]) }]} />
+          <span className="text-xs font-semibold text-stone-600">Total Products: {paging.totalCount}</span>
         </div>
 
         <div className="overflow-x-auto">
@@ -118,6 +116,7 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
               })}
             </tbody>
           </table>
+          <Pagination path="/admin/products" params={sp} {...paging} />
         </div>
       </div>
     </div>
