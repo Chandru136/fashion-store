@@ -2,9 +2,9 @@
 import type { StorefrontCoupon } from "@/lib/storefront-coupons";
 
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Search, Heart, ShoppingBag, User, LogOut, ChevronDown, Menu } from "lucide-react";
 import { MobileMenu } from "./MobileMenu";
 import styles from "./Header.module.css";
@@ -25,17 +25,43 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user, coupons = [
   const [searchQuery, setSearchQuery] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const [isSignOutOpen, setIsSignOutOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartData, setCartData] = useState<any>({ items: [], itemCount: cartItemCount, subtotal: 0, shipping: 0, tax: 0, grandTotal: 0 });
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Fetch live cart state from server route / action
+    if (!isUserMenuOpen) return;
+
+    const handleOutsidePointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !userMenuRef.current?.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsUserMenuOpen(false);
+        userMenuRef.current?.querySelector("button")?.focus();
+      }
+    };
+
+    document.addEventListener("pointerdown", handleOutsidePointerDown, true);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsidePointerDown, true);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isUserMenuOpen]);
+
+  useEffect(() => {
+    // Refresh after navigation, including returning from payment.
+    let active = true;
     async function loadCart() {
       try {
         const cart = await getCartAction();
-        if (cart) setCartData(cart);
+        if (active && cart) setCartData(cart);
       } catch (e) {}
     }
     loadCart();
@@ -48,8 +74,11 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user, coupons = [
       }
     };
     window.addEventListener("cart:updated", handleCartUpdated);
-    return () => window.removeEventListener("cart:updated", handleCartUpdated);
-  }, []);
+    return () => {
+      active = false;
+      window.removeEventListener("cart:updated", handleCartUpdated);
+    };
+  }, [pathname, user?.id]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,10 +137,23 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user, coupons = [
         {/* User Account / Wishlist / Cart Controls */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {/* User Account Menu */}
-          <div className="relative">
+          <div
+            ref={userMenuRef}
+            className="relative"
+            onPointerEnter={(event) => {
+              if (user && event.pointerType === "mouse") setIsUserMenuOpen(true);
+            }}
+            onPointerLeave={(event) => {
+              if (event.pointerType === "mouse") setIsUserMenuOpen(false);
+            }}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setIsUserMenuOpen(false);
+            }}
+          >
             {user ? (
               <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                type="button"
+                onClick={() => setIsUserMenuOpen((open) => !open)}
                 aria-label="Customer account"
                 aria-expanded={isUserMenuOpen}
                 aria-controls="customer-account-menu"
@@ -132,7 +174,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user, coupons = [
 
             {/* Dropdown Menu */}
             {isUserMenuOpen && user && (
-              <div id="customer-account-menu" onClick={() => setIsUserMenuOpen(false)} className="absolute right-0 top-full mt-2 w-48 bg-ivory-50 border gold-border rounded-md shadow-xl py-2 z-50 text-xs animate-fade-in">
+              <div id="customer-account-menu" onClick={() => setIsUserMenuOpen(false)} className="absolute right-0 top-full mt-2 w-48 bg-ivory-50 border gold-border rounded-md shadow-xl py-2 z-50 text-xs animate-fade-in before:content-[''] before:absolute before:-top-2.5 before:inset-x-0 before:h-2.5">
                 <div className="px-3 py-2 border-b border-stone-100">
                   <p className="font-semibold text-wine-900">{user.name}</p>
                   <p className="text-[10px] text-stone-500">{user.email}</p>

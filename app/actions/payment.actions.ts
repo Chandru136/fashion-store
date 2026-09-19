@@ -1,7 +1,7 @@
 "use server";
 import { paymentActor } from "@/lib/payments/actor";
 
-import { PaymentOperationError } from "@/lib/payments/lifecycle.service";
+import { cancelOrder, PaymentOperationError } from "@/lib/payments/lifecycle.service";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { applyPayment, preparePayment, reconcilePayment } from "@/lib/payments/checkout.service";
@@ -46,6 +46,15 @@ export async function paymentStatusAction(orderId: string) {
     z.string().cuid().parse(orderId);
     const status = await reconcilePayment(orderId, await userId());
     return { success: true as const, status };
+  } catch (error) { return errorResult(error); }
+}
+export async function cancelCheckoutAction(orderId: string) {
+  try {
+    z.string().cuid().parse(orderId);
+    const owner = await userId();
+    await reconcilePayment(orderId, owner);
+    const order = await cancelOrder(orderId, { userId: owner, admin: false }, "Payment cancelled by customer", false, true);
+    return { success: true as const, status: order.paymentStatus };
   } catch (error) { return errorResult(error); }
 }
 export async function simulatePaymentAction(orderId: string, outcome: "success" | "failure") {

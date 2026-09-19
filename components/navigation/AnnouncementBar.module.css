@@ -1,0 +1,18 @@
+.bar { display: flex; align-items: center; gap: 4px; padding: 4px 8px; }
+.viewport { flex: 1; min-width: 0; overflow: hidden; }
+.track { display: flex; width: max-content; min-width: 200%; animation: scrollOffers linear infinite; }
+.group { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-around; min-width: 50%; }
+.offer { display: flex; flex-shrink: 0; align-items: center; gap: 12px; padding: 8px 32px; white-space: nowrap; }
+.bar:hover .track, .bar:focus-within .track { animation-play-state: paused; }
+/* Keyboard focus exposes every offer without leaving a link off screen. */
+.viewport:focus-within { overflow-x: auto; }
+.viewport:focus-within .track { animation: none; }
+.viewport:focus-within .group[aria-hidden="true"] { display: none; }
+.pause { flex-shrink: 0; }
+@keyframes scrollOffers { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .viewport { overflow-x: auto; }
+  .track { animation: none; min-width: 100%; }
+  .group { min-width: 100%; }
+  .group[aria-hidden="true"], .pause { display: none; }
+}

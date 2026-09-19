@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { test } from "node:test";
+import { test, mock } from "node:test";
+import nodemailer from "nodemailer";
 import { prisma } from "../lib/db";
 import { createOrderFromCart } from "../lib/services/order.service";
 import { applyPayment, preparePayment } from "../lib/payments/checkout.service";
@@ -10,7 +11,10 @@ import { POST as maintenance } from "../app/api/payments/maintenance/route";
 
 test("isolated worker: expires stock/coupons once, refunds late payments, enforces lease and monitors failed webhooks", { skip: !process.env.PAYMENT_ISOLATED_TEST_SCHEMA?.startsWith("payment_test_") }, async () => {
   const original = { ...process.env }, originalFetch = global.fetch;
+  const transport = mock.method(nodemailer, "createTransport", () => ({ sendMail: async () => ({}) }) as any);
   try {
+    process.env.SMTP_USER = "fixture@example.invalid";
+    process.env.SMTP_PASSWORD = "fixture";
     process.env.PAYMENT_PROVIDER = "MOCK"; process.env.ALLOW_MOCK_PAYMENTS = "true";
     process.env.PAYMENT_CRON_SECRET = "test-maintenance-secret-32-characters-long";
     assert.equal((await maintenance(new Request("http://localhost/api/payments/maintenance", { method: "POST" }))).status, 401);
@@ -40,8 +44,15 @@ test("isolated worker: expires stock/coupons once, refunds late payments, enforc
     await runPaymentMaintenance();
     assert.equal((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).paymentStatus, "REFUNDED");
     // Coupon can be used again, proving per-user and global reservations were released.
-    await prisma.cartItem.create({ data: { cartId: cart.id, variantId, quantity: 1 } });
-    await createOrderFromCart({ ...params, checkoutKey: randomUUID() });
+    assert.equal(await prisma.cartItem.count({ where: { cartId: cart.id } }), 1);
+    const nextOrder = await createOrderFromCart({ ...params, checkoutKey: randomUUID() });
+    await prisma.cartItem.updateMany({ where: { cartId: cart.id }, data: { quantity: 2 } });
+    const nextCheckout = await preparePayment(nextOrder.id, user.id);
+    if (nextCheckout.paid) throw new Error("Unexpected paid order");
+    await applyPayment({ id: `pay_mock${nextOrder.id}`, order_id: nextCheckout.gatewayOrderId, amount: nextCheckout.amount,
+      currency: nextCheckout.currency, status: "captured", captured: true }, "MOCK");
+    assert.equal((await prisma.cartItem.findFirstOrThrow({ where: { cartId: cart.id } })).quantity, 1,
+      "successful payment preserves quantities added after checkout");
     await prisma.paymentMaintenance.update({ where: { id: "payments" }, data: { lockedUntil: new Date(Date.now() + 60000) } });
     assert.deepEqual(await runPaymentMaintenance(), { skipped: true });
     await prisma.paymentMaintenance.update({ where: { id: "payments" }, data: { lockedUntil: new Date(0) } });
@@ -52,5 +63,5 @@ test("isolated worker: expires stock/coupons once, refunds late payments, enforc
     const failed = await prisma.paymentWebhook.findUniqueOrThrow({ where: { id: event.id } });
     assert.equal(failed.status, "FAILED"); assert.equal(failed.attempts, 10); assert.ok(failed.lastError);
     assert.equal((await health(new Request("http://localhost/api/payments/health", { headers: { Authorization: `Bearer ${process.env.PAYMENT_CRON_SECRET}` } }))).status, 503);
-  } finally { process.env = original; global.fetch = originalFetch; await prisma.$disconnect(); }
+  } finally { transport.mock.restore(); process.env = original; global.fetch = originalFetch; await prisma.$disconnect(); }
 });

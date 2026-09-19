@@ -33,11 +33,12 @@ export async function queueRefund(tx: Prisma.TransactionClient, paymentId: strin
   } });
 }
 
-export async function cancelOrder(orderId: string, actor: { userId: string; admin: boolean }, reason: string, onlyExpired = false) {
+export async function cancelOrder(orderId: string, actor: { userId: string; admin: boolean }, reason: string, onlyExpired = false, onlyUnpaid = false) {
   return prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${orderId}))`;
     const order = await tx.order.findUnique({ where: { id: orderId }, include: { payments: true } });
     if (!order || (!actor.admin && order.userId !== actor.userId)) throw new PaymentOperationError("Order not found.");
+    if (onlyUnpaid && (order.status !== "PENDING" || order.paymentStatus === "PAID")) return order;
     if (order.status === "CANCELLED" || order.status === "REFUNDED") return order;
     if (onlyExpired && (order.status !== "PENDING" || !order.expiresAt || order.expiresAt > new Date() || order.paymentStatus === "PAID")) return order;
     if (!cancellableStatuses.includes(order.status)) throw new PaymentOperationError("This order has shipped. Contact the store to arrange a return.");

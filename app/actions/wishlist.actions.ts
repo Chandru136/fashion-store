@@ -45,6 +45,7 @@ export async function toggleWishlistAction(productId: string) {
     if (existingItem) {
       await prisma.wishlistItem.delete({ where: { id: existingItem.id } });
       revalidatePath("/wishlist");
+      revalidatePath("/(store)", "layout");
       return { success: true, isWishlisted: false, message: "Removed from Wishlist" };
     } else {
       await prisma.wishlistItem.create({
@@ -54,6 +55,7 @@ export async function toggleWishlistAction(productId: string) {
         },
       });
       revalidatePath("/wishlist");
+      revalidatePath("/(store)", "layout");
       return { success: true, isWishlisted: true, message: "Added to Wishlist" };
     }
   } catch (error: any) {

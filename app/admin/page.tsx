@@ -1,6 +1,7 @@
 import React from "react";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import { placedOrderWhere } from "@/lib/services/order.service";
 import { IndianRupee, ShoppingBag, Users, Package, AlertTriangle, TrendingUp, ArrowRight, ShieldCheck } from "lucide-react";
 
 export default async function AdminDashboardPage() {
@@ -28,12 +29,13 @@ export default async function AdminDashboardPage() {
       },
       _sum: { total: true },
     }),
-    prisma.order.count(),
-    prisma.order.count({ where: { status: "PENDING" } }),
+    prisma.order.count({ where: placedOrderWhere }),
+    prisma.order.count({ where: { AND: [placedOrderWhere], status: "PENDING" } }),
     prisma.user.count({ where: { role: "CUSTOMER" } }),
     prisma.product.count({ where: { status: "ACTIVE" } }),
     prisma.inventory.count({ where: { availableStock: { lte: 5 } } }),
     prisma.order.findMany({
+      where: placedOrderWhere,
       include: { user: { select: { name: true, email: true } } },
       orderBy: { createdAt: "desc" },
       take: 6,

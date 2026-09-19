@@ -1,13 +1,14 @@
 ﻿"use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Sparkles, X } from "lucide-react";
+import { Pause, Play, Sparkles, X } from "lucide-react";
 import { COUPON_STORAGE_KEY, offerLabel, type StorefrontCoupon } from "@/lib/storefront-coupons";
+import styles from "./AnnouncementBar.module.css";
 
 export function AnnouncementBar({ initialCoupons = [] }: { initialCoupons?: StorefrontCoupon[] }) {
   const [visible, setVisible] = useState(true);
   const [coupons, setCoupons] = useState(initialCoupons);
-  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     let cancelled = false;
@@ -26,16 +27,21 @@ export function AnnouncementBar({ initialCoupons = [] }: { initialCoupons?: Stor
     return () => { cancelled = true; clearInterval(poll); clearInterval(clock); window.removeEventListener("focus", refresh); };
   }, []);
   const active = coupons.filter(coupon => Date.parse(coupon.startDate) <= now && Date.parse(coupon.endDate) >= now);
-  const offer = active[index % (active.length || 1)];
-  if (!visible || !offer) return null;
-  return <div className="wine-gradient-bg relative border-b gold-border px-4 py-2 text-xs text-ivory-50">
-    <div className="mx-auto flex max-w-7xl items-center justify-center gap-3">
-      <Sparkles aria-hidden="true" className="h-4 w-4 shrink-0 text-gold-400" />
-      <div className="text-center"><p className="font-semibold">{offerLabel(offer)} — <Link href={`/cart?coupon=${encodeURIComponent(offer.code)}`} onClick={() => { try { sessionStorage.setItem(COUPON_STORAGE_KEY, offer.code); } catch { /* URL also carries the code. */ } }} className="font-bold text-gold-300 underline">Use {offer.code}</Link></p>
-        <p className="mt-1 text-[11px]">{offer.minimumOrderAmount > 0 ? `On orders from ₹${offer.minimumOrderAmount.toLocaleString("en-IN")}. ` : ""}{offer.maximumDiscount ? `Maximum savings ₹${offer.maximumDiscount.toLocaleString("en-IN")}. ` : ""}Valid until {new Date(offer.endDate).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "short", timeStyle: "short" })} IST. Usage limits apply.</p>
+  if (!visible || active.length === 0) return null;
+  return <section aria-label="Sudha Collections coupon offers" className={`${styles.bar} wine-gradient-bg border-b gold-border text-xs text-ivory-50`}>
+    <div className={styles.viewport}>
+      <div className={styles.track} style={{ animationDuration: `${Math.max(28, active.length * 24)}s`, animationPlayState: paused ? "paused" : undefined }}>
+        {[false, true].map(duplicate => <div key={String(duplicate)} className={styles.group} aria-hidden={duplicate || undefined}>
+          {active.map(offer => <Link key={offer.code} tabIndex={duplicate ? -1 : undefined} href={`/cart?coupon=${encodeURIComponent(offer.code)}`} onClick={() => { try { sessionStorage.setItem(COUPON_STORAGE_KEY, offer.code); } catch { /* URL also carries the code. */ } }} className={styles.offer}>
+            <Sparkles aria-hidden="true" className="h-4 w-4 shrink-0 text-gold-400" />
+            <span className="font-semibold">{offerLabel(offer)}</span>
+            <span className="font-bold text-gold-300 underline underline-offset-4">Use {offer.code}</span>
+            <span className="text-[11px]">{offer.minimumOrderAmount > 0 ? `Orders from \u20b9${offer.minimumOrderAmount.toLocaleString("en-IN")}. ` : ""}{offer.maximumDiscount ? `Save up to \u20b9${offer.maximumDiscount.toLocaleString("en-IN")}. ` : ""}Ends {new Date(offer.endDate).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "short", timeStyle: "short" })} IST. Usage limits apply.</span>
+          </Link>)}
+        </div>)}
       </div>
-      {active.length > 1 && <button aria-label="Show next offer" onClick={() => setIndex(current => (current + 1) % active.length)} className="shrink-0 p-2 underline">Next offer ({index % active.length + 1}/{active.length})</button>}
-      <button onClick={() => setVisible(false)} aria-label="Close announcement" className="shrink-0 p-2"><X className="h-4 w-4" /></button>
     </div>
-  </div>;
+    <button type="button" onClick={() => setPaused(value => !value)} aria-label={paused ? "Play coupon announcements" : "Pause coupon announcements"} aria-pressed={paused} className={`${styles.pause} p-2`}>{paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}</button>
+    <button type="button" onClick={() => setVisible(false)} aria-label="Close announcement" className="shrink-0 p-2"><X className="h-4 w-4" /></button>
+  </section>;
 }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { paymentStatusAction, preparePaymentAction, simulatePaymentAction, verifyPaymentAction } from "@/app/actions/payment.actions";
+import { cancelCheckoutAction, paymentStatusAction, preparePaymentAction, simulatePaymentAction, verifyPaymentAction } from "@/app/actions/payment.actions";
 
 const requestSchema = z.discriminatedUnion("operation", [
+  z.object({ operation: z.literal("cancel"), orderId: z.string().cuid() }),
   z.object({ operation: z.literal("prepare"), orderId: z.string().cuid() }),
   z.object({ operation: z.literal("status"), orderId: z.string().cuid() }),
   z.object({ operation: z.literal("simulate"), orderId: z.string().cuid(), outcome: z.enum(["success", "failure"]) }),
@@ -19,6 +20,7 @@ export async function POST(request: NextRequest) {
   const data = parsed.data;
   // Reuse all existing session, ownership, signature and amount checks.
   const result = data.operation === "prepare" ? await preparePaymentAction(data.orderId)
+    : data.operation === "cancel" ? await cancelCheckoutAction(data.orderId)
     : data.operation === "status" ? await paymentStatusAction(data.orderId)
     : data.operation === "simulate" ? await simulatePaymentAction(data.orderId, data.outcome)
     : await verifyPaymentAction(data);

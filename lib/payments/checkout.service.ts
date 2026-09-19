@@ -2,6 +2,7 @@ import { queueRefund, releaseReservation, PaymentOperationError } from "./lifecy
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { fetchPayment, gatewayPaymentSchema, GatewayPayment, paymentConfig, razorpayRequest } from "./razorpay";
+import { sendPaidOrderNotifications } from "./order-notifications.service";
 
 export async function preparePayment(orderId: string, userId: string) {
   const config = paymentConfig();
@@ -33,7 +34,8 @@ export async function preparePayment(orderId: string, userId: string) {
 
 // One atomic, monotonic transition shared by callbacks, reconciliation and webhooks.
 export async function applyPayment(payment: GatewayPayment, provider = "RAZORPAY") {
-  return prisma.$transaction(async (tx) => {
+  let confirmedOrderId: string | undefined;
+  const status = await prisma.$transaction(async (tx) => {
     const record = await tx.payment.findUnique({ where: { gatewayOrderId: payment.order_id } });
     if (!record || record.provider !== provider) throw new Error("Payment order is not registered.");
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${record.orderId}))`;
@@ -65,8 +67,25 @@ export async function applyPayment(payment: GatewayPayment, provider = "RAZORPAY
     await tx.payment.update({ where: { id: current.id }, data: { status: "PAID", transactionId: payment.id, paidAt: new Date() } });
     await tx.order.update({ where: { id: current.orderId }, data: { paymentStatus: "PAID", status: cancelled ? "CANCELLED" : "CONFIRMED" } });
     if (cancelled) await queueRefund(tx, current.id, "Payment captured after cancellation or expiry");
+    else {
+      confirmedOrderId = current.orderId;
+      // This runs once, in the same transaction as payment confirmation.
+      // Preserve unrelated items and quantities added after checkout began.
+      const items = await tx.orderItem.findMany({ where: { orderId: current.orderId } });
+      for (const item of items) {
+        const where = { cart: { userId: current.order.userId }, variantId: item.variantId };
+        await tx.cartItem.deleteMany({ where: { ...where, quantity: { lte: item.quantity } } });
+        await tx.cartItem.updateMany({
+          where: { ...where, quantity: { gt: item.quantity } },
+          data: { quantity: { decrement: item.quantity } },
+        });
+      }
+    }
     return "PAID";
   });
+  // Send only for the first successful transition, after the transaction commits.
+  if (confirmedOrderId) await sendPaidOrderNotifications(confirmedOrderId);
+  return status;
 }
 
 export async function reconcilePayment(orderId: string, userId: string) {

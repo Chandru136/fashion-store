@@ -4,6 +4,7 @@ import { OrderStatus, type Prisma } from "@prisma/client";
 import React from "react";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import { placedOrderWhere } from "@/lib/services/order.service";
 
 export default async function AdminOrdersPage({ searchParams }: ListPageProps) {
   const sp = await searchParams;
@@ -11,7 +12,7 @@ export default async function AdminOrdersPage({ searchParams }: ListPageProps) {
   const searchQuery = value(sp, "q");
   const sort = choice(sp, "sort", priceSorts.map(o => o.value), "newest");
 
-  const whereClause: Prisma.OrderWhereInput = {};
+  const whereClause: Prisma.OrderWhereInput = { AND: [placedOrderWhere] };
   if (statusFilter) whereClause.status = statusFilter;
   if (searchQuery) {
     whereClause.OR = [

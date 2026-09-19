@@ -9,9 +9,8 @@ import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { verifySessionToken, getSessionUser } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
-import { orderConfirmationHtml, orderStatusUpdateHtml, adminNewOrderHtml } from "@/lib/email-templates";
+import { orderStatusUpdateHtml } from "@/lib/email-templates";
 
-const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
 
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
@@ -77,49 +76,6 @@ export async function createOrderAction(input: CreateOrderInput) {
 
     revalidatePath("/orders");
     revalidatePath("/cart");
-
-    // Fetch full order details (items + customer email) for the emails —
-    // createOrderFromCart's return value may not include the user relation.
-    const fullOrder = await prisma.order.findUnique({
-      where: { id: order.id },
-      include: { items: true, user: { select: { name: true, email: true } } },
-    });
-
-    if (fullOrder) {
-      const emailData = {
-        orderNumber: fullOrder.orderNumber,
-        customerName: fullOrder.user.name,
-        status: fullOrder.status,
-        total: fullOrder.total,
-        trackingNumber: fullOrder.trackingNumber,
-        shippingAddress: fullOrder.shippingAddress,
-        shippingCity: fullOrder.shippingCity,
-        shippingState: fullOrder.shippingState,
-        shippingPincode: fullOrder.shippingPincode,
-        items: fullOrder.items.map((i) => ({
-          productName: i.productName,
-          sku: i.sku,
-          quantity: i.quantity,
-          totalPrice: i.totalPrice,
-        })),
-      };
-
-      // Customer confirmation
-      await sendEmail({
-        to: fullOrder.user.email,
-        subject: `Order Confirmed — #${fullOrder.orderNumber}`,
-        html: orderConfirmationHtml(emailData),
-      });
-
-      // Admin notification — only if an admin notification address is configured
-      if (ADMIN_NOTIFICATION_EMAIL) {
-        await sendEmail({
-          to: ADMIN_NOTIFICATION_EMAIL,
-          subject: `New Order — #${fullOrder.orderNumber}`,
-          html: adminNewOrderHtml(emailData),
-        });
-      }
-    }
 
     return { success: true, orderId: order.id, orderNumber: order.orderNumber, paymentMethod: order.paymentMethod };
   } catch (error: any) {

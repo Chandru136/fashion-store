@@ -41,6 +41,7 @@ export function OrderPaymentControls({ orderId }: { orderId: string }) {
         paid = result.status === "PAID";
       }
       if (paid) router.push(`/order-success?orderId=${orderId}`);
+      else if (pay) router.push("/cart");
       else {
         setMessage("Payment is still pending. If you were debited, check payment status before retrying.");
         router.refresh();

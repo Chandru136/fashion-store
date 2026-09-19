@@ -43,7 +43,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
     try {
       if (pendingOrder.current) {
         const paid = await openOrderPayment(pendingOrder.current);
-        router.push(paid ? `/order-success?orderId=${pendingOrder.current}` : `/orders/${pendingOrder.current}`);
+        router.push(paid ? `/order-success?orderId=${pendingOrder.current}` : "/cart");
         return;
       }
       checkoutKey.current ||= crypto.randomUUID();
@@ -57,7 +57,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
       if (!res.success || !res.orderId) throw new Error(res.error || "Order placement failed");
       pendingOrder.current = res.orderId;
       const paid = await openOrderPayment(res.orderId);
-      router.push(paid ? `/order-success?orderId=${res.orderId}` : `/orders/${res.orderId}`);
+      router.push(paid ? `/order-success?orderId=${res.orderId}` : "/cart");
     } catch (error) {
       setErrorMsg(error instanceof Error ? error.message : "Order placement failed. Please retry.");
     } finally {
@@ -140,7 +140,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
 
       {/* Right: Summary Column */}
       <div className="lg:col-span-5 space-y-6">
-        <CouponControl coupon={coupon} disabled={isSubmitting || Boolean(pendingOrder.current)} />
+        <CouponControl coupon={coupon} subtotal={cart.subtotal} disabled={isSubmitting || Boolean(pendingOrder.current)} />
         <div className="p-6 bg-ivory-50 rounded-lg border gold-border space-y-4 shadow-md sticky top-28">
           <h3 className="font-serif font-bold text-wine-900 text-sm border-b border-ivory-300 pb-2">
             Bag Items ({cart.items.length})
@@ -160,7 +160,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
           </div>
 
           <div className="space-y-2 pt-3 border-t border-ivory-300 text-xs text-stone-700">
-            {coupon.applied && <div className="flex justify-between text-emerald-700"><span>Coupon ({coupon.applied.code})</span><span>-?{coupon.applied.discountAmount.toLocaleString("en-IN")}</span></div>}
+            {coupon.applied && <div className="flex justify-between gap-3 text-emerald-700"><span>Coupon ({coupon.applied.code})</span><span className="shrink-0">-{new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(coupon.applied.discountAmount)}</span></div>}
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span className="font-bold text-wine-900">₹{cart.subtotal.toLocaleString("en-IN")}</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { paymentStatusAction, preparePaymentAction, simulatePaymentAction, verifyPaymentAction } from "@/lib/payments/checkout-api.client";
+import { cancelCheckoutAction, paymentStatusAction, preparePaymentAction, simulatePaymentAction, verifyPaymentAction } from "@/lib/payments/checkout-api.client";
 import { confirmCheckoutPayment } from "./confirmation.client";
 
 type CheckoutResponse = { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string };
@@ -33,7 +33,7 @@ export async function openOrderPayment(orderId: string): Promise<boolean> {
   if (checkout.paid) return true;
   if (checkout.mock) {
     const success = window.confirm(`DEVELOPMENT TEST PAYMENT\nAmount: ${checkout.currency} ${(checkout.amount / 100).toFixed(2)}\nOK: simulate success. Cancel: simulate failure. No money is charged.`);
-    const result = await simulatePaymentAction(orderId, success ? "success" : "failure");
+    const result = success ? await simulatePaymentAction(orderId, "success") : await cancelCheckoutAction(orderId);
     if (!result.success) throw new Error(result.error);
     return result.status === "PAID";
   }
@@ -52,11 +52,11 @@ export async function openOrderPayment(orderId: string): Promise<boolean> {
         if (verifying) return;
         // Closing the gateway can race its callback (especially on mobile).
         // Recover a captured payment before treating the close as a cancellation.
-        const paid = await confirmCheckoutPayment(
-          () => paymentStatusAction(orderId),
-          () => paymentStatusAction(orderId),
-        );
-        if (!verifying) resolve(paid);
+        try {
+          const result = await cancelCheckoutAction(orderId);
+          if (!result.success) throw new Error(result.error);
+          if (!verifying) resolve(result.status === "PAID");
+        } catch (error) { if (!verifying) reject(error); }
       } },
       handler: async (response) => {
         verifying = true;

@@ -17,6 +17,8 @@ async function request<T>(body: object): Promise<T> {
 
 export const preparePaymentAction = (orderId: string) =>
   request<Awaited<ReturnType<typeof Actions.preparePaymentAction>>>({ operation: "prepare", orderId });
+export const cancelCheckoutAction = (orderId: string) =>
+  request<Awaited<ReturnType<typeof Actions.cancelCheckoutAction>>>({ operation: "cancel", orderId });
 export const paymentStatusAction = (orderId: string) =>
   request<Awaited<ReturnType<typeof Actions.paymentStatusAction>>>({ operation: "status", orderId });
 export const verifyPaymentAction = (data: Parameters<typeof Actions.verifyPaymentAction>[0]) =>

@@ -6,6 +6,10 @@ import { validateCoupon } from "@/lib/services/coupon.service";
 import { randomUUID } from "crypto";
 import { paymentConfig, toPaise } from "@/lib/payments/razorpay";
 
+export const placedOrderWhere: Prisma.OrderWhereInput = {
+  OR: [{ paymentMethod: { not: "ONLINE" } }, { paymentStatus: { in: ["PAID", "REFUNDED"] } }],
+};
+
 export interface CreateOrderParams {
   userId: string;
   checkoutKey: string;
@@ -213,11 +217,7 @@ export async function createOrderFromCart(params: CreateOrderParams) {
       });
     }
 
-    // Clear user cart items
-    await tx.cartItem.deleteMany({
-      where: { cartId: cart.id },
-    });
-
+    // Keep the cart until payment is captured and the order is confirmed.
     return order;
   }, { timeout: 15000 });
 }
@@ -227,6 +227,7 @@ export async function getUserOrders(userId: string, params: ListParams = {}) {
   const status = choice(params, "status", Object.values(OrderStatus)) as OrderStatus | "";
   const sort = choice(params, "sort", dateSorts.map(o => o.value), "newest");
   const where: Prisma.OrderWhereInput = { userId,
+    AND: [placedOrderWhere],
     ...(status ? { status } : {}),
     ...(q ? { OR: [{ orderNumber: { contains: q, mode: "insensitive" } }, { items: { some: { productName: { contains: q, mode: "insensitive" } } } }] } : {}),
   };
