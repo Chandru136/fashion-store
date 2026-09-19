@@ -1,8 +1,6 @@
-import ProductListingPage from "@/app/(store)/products/page";
-
-export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<any> }) {
-  const p = await params;
-  const sp = await searchParams;
-
-  return <ProductListingPage searchParams={Promise.resolve({ ...sp, category: p.slug })} />;
+import { ProductListing } from "@/components/product/ProductListing";
+import type { ListPageProps } from "@/lib/listing";
+export default async function CategoryPage({ params, searchParams }: ListPageProps & { params: Promise<{ slug: string }> }) {
+ const { slug } = await params;
+ return <ProductListing params={{ ...await searchParams, category: slug }} path={"/category/" + encodeURIComponent(slug)} />;
 }

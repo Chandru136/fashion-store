@@ -1,18 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
+import { CouponControl, useCartCoupon } from "@/components/cart/CouponControl";
 import Link from "next/link";
 import { ShoppingBag, ArrowRight, Trash2, Plus, Minus, Tag, ShieldCheck } from "lucide-react";
-import { updateCartQtyAction, removeCartItemAction, applyCouponAction } from "@/app/actions/cart.actions";
+import { updateCartQtyAction, removeCartItemAction } from "@/app/actions/cart.actions";
 import { Loader } from "@/components/common/Loader";
 
 export function CartPageClient({ initialCart }: { initialCart: any }) {
   const [cart, setCart] = useState(initialCart);
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
-  const [couponError, setCouponError] = useState<string | null>(null);
+  const coupon = useCartCoupon(cart);
+  const appliedCoupon = coupon.applied;
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
-  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const handleUpdateQty = async (id: string, qty: number) => {
@@ -35,22 +34,6 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
     }
   };
 
-  const handleApplyCoupon = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCouponError(null);
-    setIsApplyingCoupon(true);
-    try {
-      const res = await applyCouponAction(couponCode, cart?.subtotal || 0);
-      if (res.success) {
-        setAppliedCoupon(res.coupon);
-      } else {
-        setCouponError(res.error);
-      }
-    } finally {
-      setIsApplyingCoupon(false);
-    }
-  };
-
   if (!cart || cart.items.length === 0) {
     return (
       <div className="text-center py-20 bg-ivory-50 rounded-xl border gold-border p-8 space-y-4 max-w-md mx-auto">
@@ -64,8 +47,7 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
     );
   }
 
-  const finalDiscount = appliedCoupon?.discountAmount || 0;
-  const finalGrandTotal = Math.max(0, cart.grandTotal - finalDiscount);
+  const finalGrandTotal = appliedCoupon?.grandTotal ?? cart.grandTotal;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -135,39 +117,7 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
 
       {/* Right: Summary & Coupon */}
       <div className="lg:col-span-4 space-y-6">
-        {/* Coupon Form */}
-        <div className="p-5 bg-ivory-50 rounded-lg border gold-border space-y-3 shadow-sm">
-          <h3 className="font-serif font-bold text-wine-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
-            <Tag className="w-4 h-4 text-gold-600" /> Apply Promo Coupon
-          </h3>
-          <form onSubmit={handleApplyCoupon} className="flex gap-2">
-            <input
-              type="text"
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-              placeholder="e.g. ROYALSILK15"
-              className="flex-1 px-3 py-2 text-xs border border-stone-300 rounded uppercase font-semibold focus:outline-none focus:border-gold-500"
-            />
-            <button
-              type="submit"
-              disabled={isApplyingCoupon || !couponCode.trim()}
-              className="px-4 py-2 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border flex items-center gap-1.5 disabled:opacity-60"
-            >
-              {isApplyingCoupon ? (
-                <>
-                  <Loader size="xs" color="gold" />
-                  <span>Applying...</span>
-                </>
-              ) : (
-                "Apply"
-              )}
-            </button>
-          </form>
-          {appliedCoupon && (
-            <p className="text-xs font-bold text-emerald-700">✓ Coupon {appliedCoupon.code} applied! Saved ₹{appliedCoupon.discountAmount}.</p>
-          )}
-          {couponError && <p className="text-xs text-red-600">{couponError}</p>}
-        </div>
+        <CouponControl coupon={coupon} disabled={Boolean(updatingItemId)} />
 
         {/* Order Summary Box */}
         <div className="p-5 bg-ivory-50 rounded-lg border gold-border space-y-4 shadow-md">
@@ -190,8 +140,8 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
               </div>
             )}
             <div className="flex justify-between">
-              <span>GST Tax (5%)</span>
-              <span>₹{cart.tax.toLocaleString("en-IN")}</span>
+              <span>GST Tax</span>
+              <span>₹{(appliedCoupon?.tax ?? cart.tax).toLocaleString("en-IN")}</span>
             </div>
             <div className="flex justify-between">
               <span>Delivery Charge</span>
@@ -206,8 +156,10 @@ export function CartPageClient({ initialCart }: { initialCart: any }) {
           </div>
 
           <Link
-            href="/checkout"
-            onClick={() => {
+            href={appliedCoupon ? `/checkout?coupon=${encodeURIComponent(appliedCoupon.code)}` : "/checkout"}
+            aria-disabled={coupon.pending || Boolean(updatingItemId)}
+            onClick={(event) => {
+              if (coupon.pending || updatingItemId) { event.preventDefault(); return; }
               setIsCheckingOut(true);
               window.dispatchEvent(new CustomEvent("app:loading:start", { detail: { message: "Proceeding to Checkout..." } }));
             }}

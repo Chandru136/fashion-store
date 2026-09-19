@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CouponControl, useCartCoupon } from "@/components/cart/CouponControl";
 import Link from "next/link";
 import { Truck, CreditCard, Lock, MapPin, Plus } from "lucide-react";
 import { openOrderPayment } from "@/lib/payments/checkout.client";
@@ -24,7 +25,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
   const [shippingAddressId, setShippingAddressId] = useState(addresses[0]?.id || "");
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
   const [billingAddressId, setBillingAddressId] = useState(addresses[0]?.id || "");
-  const [couponCode, setCouponCode] = useState("");
+  const coupon = useCartCoupon(cart);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -35,7 +36,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting.current) return;
+    if (submitting.current || coupon.pending) return;
     submitting.current = true;
     setIsSubmitting(true);
     setErrorMsg(null);
@@ -51,7 +52,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
         shippingAddressId,
         billingAddressId: billingSameAsShipping ? undefined : billingAddressId,
         paymentMethod: "ONLINE",
-        couponCode: couponCode || undefined,
+        couponCode: coupon.applied?.code || undefined,
       });
       if (!res.success || !res.orderId) throw new Error(res.error || "Order placement failed");
       pendingOrder.current = res.orderId;
@@ -139,6 +140,7 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
 
       {/* Right: Summary Column */}
       <div className="lg:col-span-5 space-y-6">
+        <CouponControl coupon={coupon} disabled={isSubmitting || Boolean(pendingOrder.current)} />
         <div className="p-6 bg-ivory-50 rounded-lg border gold-border space-y-4 shadow-md sticky top-28">
           <h3 className="font-serif font-bold text-wine-900 text-sm border-b border-ivory-300 pb-2">
             Bag Items ({cart.items.length})
@@ -158,13 +160,14 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
           </div>
 
           <div className="space-y-2 pt-3 border-t border-ivory-300 text-xs text-stone-700">
+            {coupon.applied && <div className="flex justify-between text-emerald-700"><span>Coupon ({coupon.applied.code})</span><span>-?{coupon.applied.discountAmount.toLocaleString("en-IN")}</span></div>}
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span className="font-bold text-wine-900">₹{cart.subtotal.toLocaleString("en-IN")}</span>
             </div>
             <div className="flex justify-between">
               <span>GST Tax</span>
-              <span>₹{cart.tax.toLocaleString("en-IN")}</span>
+              <span>₹{(coupon.applied?.tax ?? cart.tax).toLocaleString("en-IN")}</span>
             </div>
             <div className="flex justify-between">
               <span>Delivery</span>
@@ -172,13 +175,13 @@ export function CheckoutFormClient({ cart, addresses }: { cart: any; addresses: 
             </div>
             <div className="flex justify-between pt-3 border-t border-ivory-300 text-sm font-bold text-wine-900">
               <span>Total Payable</span>
-              <span className="text-lg text-wine-800">₹{cart.grandTotal.toLocaleString("en-IN")}</span>
+              <span className="text-lg text-wine-800">₹{(coupon.applied?.grandTotal ?? cart.grandTotal).toLocaleString("en-IN")}</span>
             </div>
           </div>
 
           <button
             type="submit"
-            disabled={isSubmitting || addresses.length === 0}
+            disabled={isSubmitting || coupon.pending || addresses.length === 0}
             className="w-full py-4 wine-gradient-bg text-gold-300 font-bold text-xs uppercase tracking-widest rounded gold-border shadow-xl hover:brightness-110 transition-all flex items-center justify-center gap-2"
           >
             {isSubmitting ? (

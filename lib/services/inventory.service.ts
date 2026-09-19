@@ -1,19 +1,30 @@
+import type { Prisma } from "@prisma/client";
+import { pagination, value, choice, type ListParams } from "@/lib/listing";
 import { prisma } from "@/lib/db";
 
-export async function getInventoryOverview() {
+export async function getInventoryOverview(params: ListParams = {}) {
+  const q = value(params, "q");
+  const stock = choice(params, "stock", ["LOW_STOCK", "OUT_OF_STOCK", "IN_STOCK"]);
+  const sort = choice(params, "sort", ["stock_asc", "stock_desc"], "stock_asc");
+  const where: Prisma.InventoryWhereInput = {
+    ...(q ? { variant: { OR: [{ sku: { contains: q, mode: "insensitive" } }, { product: { name: { contains: q, mode: "insensitive" } } }] } } : {}),
+    ...(stock === "OUT_OF_STOCK" ? { availableStock: 0 } : stock === "LOW_STOCK" ? { availableStock: { gt: 0, lte: prisma.inventory.fields.lowStockThreshold } } : stock === "IN_STOCK" ? { availableStock: { gt: prisma.inventory.fields.lowStockThreshold } } : {}),
+  };
+  const paging = pagination(await prisma.inventory.count({ where }), value(params, "page"));
   const [totalStockResult, lowStockCount, outOfStockCount, items] = await Promise.all([
     prisma.inventory.aggregate({
       _sum: { availableStock: true, reservedStock: true },
     }),
     prisma.inventory.count({
       where: {
-        availableStock: { lte: 5, gt: 0 },
+        availableStock: { lte: prisma.inventory.fields.lowStockThreshold, gt: 0 },
       },
     }),
     prisma.inventory.count({
       where: { availableStock: 0 },
     }),
     prisma.inventory.findMany({
+      where,
       include: {
         variant: {
           include: {
@@ -21,12 +32,13 @@ export async function getInventoryOverview() {
           },
         },
       },
-      orderBy: { availableStock: "asc" },
-      take: 50,
+      orderBy: [{ availableStock: sort === "stock_desc" ? "desc" : "asc" }, { id: "asc" }],
+      skip: paging.skip, take: paging.take,
     }),
   ]);
 
   return {
+    ...paging,
     totalAvailable: totalStockResult._sum.availableStock || 0,
     totalReserved: totalStockResult._sum.reservedStock || 0,
     lowStockCount,

@@ -1,10 +1,12 @@
+import { ListControls, Pagination } from "@/components/common/ListControls";
+import { options, type ListPageProps } from "@/lib/listing";
 import React from "react";
 import { getInventoryOverview } from "@/lib/services/inventory.service";
-import { Boxes, AlertTriangle, CheckCircle, Package } from "lucide-react";
 import { StockUpdateModalClient } from "./StockUpdateModalClient";
 
-export default async function AdminInventoryPage() {
-  const overview = await getInventoryOverview();
+export default async function AdminInventoryPage({ searchParams }: ListPageProps) {
+  const sp = await searchParams;
+  const overview = await getInventoryOverview(sp);
 
   return (
     <div className="space-y-6">
@@ -36,6 +38,7 @@ export default async function AdminInventoryPage() {
       {/* Inventory Table with Quick Adjustment Modal */}
       <div className="p-6 bg-ivory-50 rounded-xl border border-stone-200 shadow-sm space-y-4">
         <h2 className="font-serif font-bold text-wine-900 text-lg">Variant Stock Table</h2>
+        <ListControls path="/admin/inventory" params={sp} search="Product name or variant SKU" sorts={[{ value: "stock_asc", label: "Stock: low to high" }, { value: "stock_desc", label: "Stock: high to low" }]} filters={[{ key: "stock", label: "Stock status", options: options(["LOW_STOCK", "OUT_OF_STOCK", "IN_STOCK"]) }]} />
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -75,6 +78,7 @@ export default async function AdminInventoryPage() {
               ))}
             </tbody>
           </table>
+          <Pagination path="/admin/inventory" params={sp} {...overview} />
         </div>
       </div>
     </div>

@@ -64,11 +64,15 @@ export async function removeCartItemAction(cartItemId: string) {
   }
 }
 
-export async function applyCouponAction(code: string, subtotal: number) {
+export async function applyCouponAction(code: string) {
   try {
-    const { userId } = await getSessionIdentifiers();
-    const validated = await validateCoupon(code, subtotal, userId);
-    return { success: true, coupon: validated };
+    const { userId, sessionId } = await getSessionIdentifiers();
+    const cart = await getOrCreateCart(userId, sessionId);
+    if (!cart || !cart.items.length || cart.subtotal <= 0) return { success: false, error: "Add products to your bag before applying a coupon." };
+    const validated = await validateCoupon(code.trim(), cart.subtotal, userId);
+    const tax = Math.round(cart.rawTax * (1 - validated.discountAmount / cart.subtotal));
+    const grandTotal = Math.round((cart.subtotal - validated.discountAmount + tax + cart.shipping) * 100) / 100;
+    return { success: true, coupon: { ...validated, tax, grandTotal } };
   } catch (error: any) {
     return { success: false, error: error.message || "Invalid coupon code" };
   }

@@ -1,3 +1,6 @@
+import { facetOptions } from "@/lib/catalog-filters";
+import type { Prisma } from "@prisma/client";
+import { pagination, positiveInteger, nonnegativeNumber } from "@/lib/listing";
 import { prisma } from "@/lib/db";
 
 export interface ProductFilterParams {
@@ -5,48 +8,21 @@ export interface ProductFilterParams {
   searchQuery?: string;
   minPrice?: number;
   maxPrice?: number;
-  fabric?: string;
-  occasion?: string;
-  color?: string;
+  fabric?: string | string[];
+  occasion?: string | string[];
+  color?: string | string[];
   discountMin?: number;
   ratingMin?: number;
-  sort?: "featured" | "bestseller" | "newest" | "price_asc" | "price_desc" | "rating";
+  sort?: "featured" | "bestseller" | "newest" | "price_asc" | "price_desc" | "oldest";
   page?: number;
   limit?: number;
 }
 
 export async function getProducts(params: ProductFilterParams = {}) {
-  const page = params.page || 1;
-  const limit = params.limit || 12;
-  const skip = (page - 1) * limit;
+  const limit = positiveInteger(params.limit, 12, 100);
+  params = { ...params, minPrice: nonnegativeNumber(params.minPrice), maxPrice: nonnegativeNumber(params.maxPrice) };
 
-  const whereClause: any = {
-    status: "ACTIVE",
-  };
-
-  // Filter by Category or Subcategory slug
-  if (params.categorySlug) {
-    const category = await prisma.category.findUnique({
-      where: { slug: params.categorySlug },
-      include: { children: { select: { id: true } } },
-    });
-
-    if (category) {
-      const categoryIds = [category.id, ...category.children.map((c) => c.id)];
-      whereClause.categoryId = { in: categoryIds };
-    }
-  }
-
-  // Search query (Name, SKU, Fabric, Occasion)
-  if (params.searchQuery) {
-    whereClause.OR = [
-      { name: { contains: params.searchQuery, mode: "insensitive" } },
-      { sku: { contains: params.searchQuery, mode: "insensitive" } },
-      { description: { contains: params.searchQuery, mode: "insensitive" } },
-      { fabric: { contains: params.searchQuery, mode: "insensitive" } },
-      { occasion: { contains: params.searchQuery, mode: "insensitive" } },
-    ];
-  }
+  const whereClause = await productContextWhere(params);
 
   // Price range
   if (params.minPrice !== undefined || params.maxPrice !== undefined) {
@@ -56,31 +32,34 @@ export async function getProducts(params: ProductFilterParams = {}) {
   }
 
   // Fabric & Occasion
-  if (params.fabric) {
-    whereClause.fabric = { contains: params.fabric, mode: "insensitive" };
+  if (params.fabric && params.fabric.length) {
+    whereClause.fabric = Array.isArray(params.fabric) ? { in: params.fabric, mode: "insensitive" } : { contains: params.fabric, mode: "insensitive" };
   }
-  if (params.occasion) {
-    whereClause.occasion = { contains: params.occasion, mode: "insensitive" };
+  if (params.occasion && params.occasion.length) {
+    whereClause.occasion = Array.isArray(params.occasion) ? { in: params.occasion, mode: "insensitive" } : { contains: params.occasion, mode: "insensitive" };
   }
 
   // Color filter (via variants)
-  if (params.color) {
+  if (params.color && params.color.length) {
     whereClause.variants = {
       some: {
-        color: { contains: params.color, mode: "insensitive" },
+        color: Array.isArray(params.color) ? { in: params.color, mode: "insensitive" } : { contains: params.color, mode: "insensitive" },
       },
     };
   }
 
   // Sorting
-  let orderBy: any = { createdAt: "desc" };
+  let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
   if (params.sort === "bestseller") orderBy = { bestseller: "desc" };
   else if (params.sort === "featured") orderBy = { featured: "desc" };
   else if (params.sort === "price_asc") orderBy = { sellingPrice: "asc" };
   else if (params.sort === "price_desc") orderBy = { sellingPrice: "desc" };
   else if (params.sort === "newest") orderBy = { createdAt: "desc" };
 
-  const [products, totalCount] = await Promise.all([
+  if (params.sort === "oldest") orderBy = { createdAt: "asc" };
+  const totalCount = await prisma.product.count({ where: whereClause });
+  const paging = pagination(totalCount, params.page, limit);
+  const products = await
     prisma.product.findMany({
       where: whereClause,
       include: {
@@ -90,12 +69,10 @@ export async function getProducts(params: ProductFilterParams = {}) {
         variants: { include: { inventory: true } },
         reviews: { select: { rating: true } },
       },
-      orderBy,
-      skip,
-      take: limit,
-    }),
-    prisma.product.count({ where: whereClause }),
-  ]);
+      orderBy: [orderBy, { id: "asc" }],
+      skip: paging.skip,
+      take: paging.take,
+    });
 
   // Compute ratings & discount percentage
   const formattedProducts = products.map((p) => {
@@ -116,8 +93,8 @@ export async function getProducts(params: ProductFilterParams = {}) {
   return {
     products: formattedProducts,
     totalCount,
-    totalPages: Math.ceil(totalCount / limit),
-    currentPage: page,
+    totalPages: paging.totalPages,
+    currentPage: paging.currentPage,
   };
 }
 
@@ -168,4 +145,49 @@ export async function getProductBySlug(slug: string) {
       discountPercent: p.mrp > p.sellingPrice ? Math.round(((p.mrp - p.sellingPrice) / p.mrp) * 100) : 0,
     })),
   };
+}
+
+async function productContextWhere(params: Pick<ProductFilterParams, "categorySlug" | "searchQuery">) {
+  const whereClause: Prisma.ProductWhereInput = {
+    status: "ACTIVE",
+  };
+
+  // Filter by Category or Subcategory slug
+  if (params.categorySlug) {
+    const category = await prisma.category.findUnique({
+      where: { slug: params.categorySlug },
+      include: { children: { select: { id: true } } },
+    });
+
+    if (category) {
+      const categoryIds = [category.id, ...category.children.map((c) => c.id)];
+      whereClause.categoryId = { in: categoryIds };
+    } else {
+      whereClause.id = { in: [] };
+    }
+  }
+
+  // Search query (Name, SKU, Fabric, Occasion)
+  if (params.searchQuery) {
+    whereClause.OR = [
+      { name: { contains: params.searchQuery, mode: "insensitive" } },
+      { sku: { contains: params.searchQuery, mode: "insensitive" } },
+      { description: { contains: params.searchQuery, mode: "insensitive" } },
+      { fabric: { contains: params.searchQuery, mode: "insensitive" } },
+      { occasion: { contains: params.searchQuery, mode: "insensitive" } },
+    ];
+  }
+
+  return whereClause;
+}
+
+// Options come from the full active category/search context, not just the current page.
+export async function getProductFacets(params: Pick<ProductFilterParams, "categorySlug" | "searchQuery"> = {}) {
+  const where = await productContextWhere(params);
+  const [fabrics, occasions, colors] = await Promise.all([
+    prisma.product.findMany({ where, select: { fabric: true }, distinct: ["fabric"] }),
+    prisma.product.findMany({ where, select: { occasion: true }, distinct: ["occasion"] }),
+    prisma.productVariant.findMany({ where: { product: where }, select: { color: true }, distinct: ["color"] }),
+  ]);
+  return { fabric: facetOptions(fabrics.map(row => row.fabric)), occasion: facetOptions(occasions.map(row => row.occasion)), color: facetOptions(colors.map(row => row.color)) };
 }

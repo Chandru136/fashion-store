@@ -1,5 +1,6 @@
 "use server";
 
+import { pagination, choice, value, priceSorts, type ListParams } from "@/lib/listing";
 import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 
 import { prisma } from "@/lib/db";
@@ -60,43 +61,28 @@ export async function toggleWishlistAction(productId: string) {
   }
 }
 
-export async function getUserWishlistAction() {
+export async function getUserWishlistAction(params: ListParams = {}) {
   const userId = await getUserIdFromSession();
-  if (!userId) return [];
-
-  const wishlist = await prisma.wishlist.findUnique({
-    where: { userId },
-    include: {
-      items: {
-        include: {
-          product: {
-            include: {
-              images: { orderBy: { sortOrder: "asc" } },
-              category: { select: { name: true } },
-              variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
-            },
-          },
-        },
-      },
-    },
+  if (!userId) return { items: [], ...pagination(0, 1, 12) };
+  const q = value(params, "q");
+  const sort = choice(params, "sort", priceSorts.map(o => o.value), "newest");
+  const where = { wishlist: { userId }, ...(q ? { product: { name: { contains: q, mode: "insensitive" as const } } } : {}) };
+  const paging = pagination(await prisma.wishlistItem.count({ where }), value(params, "page"), 12);
+  const rows = await prisma.wishlistItem.findMany({
+    where, skip: paging.skip, take: paging.take,
+    orderBy: [sort === "price_asc" || sort === "price_desc" ? { product: { sellingPrice: sort === "price_asc" ? "asc" : "desc" } } : { createdAt: sort === "oldest" ? "asc" : "desc" }, { id: "asc" }],
+    include: { product: { include: {
+      images: { orderBy: { sortOrder: "asc" } }, category: { select: { name: true } },
+      variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
+    } } },
   });
-
-  if (!wishlist) return [];
-
-  return wishlist.items.map((item) => {
+  return { ...paging, items: rows.map(item => {
     const p = item.product;
-    const discountPercent = p.mrp > p.sellingPrice ? Math.round(((p.mrp - p.sellingPrice) / p.mrp) * 100) : 0;
     return {
-      id: item.id,
-      productId: p.id,
-      name: p.name,
-      slug: p.slug,
-      mrp: p.mrp,
-      sellingPrice: p.sellingPrice,
-      discountPercent,
-      categoryName: p.category.name,
-      primaryImage: p.images[0]?.url || "/images/placeholder.jpg",
+      id: item.id, productId: p.id, name: p.name, slug: p.slug, mrp: p.mrp, sellingPrice: p.sellingPrice,
+      discountPercent: p.mrp > p.sellingPrice ? Math.round(((p.mrp - p.sellingPrice) / p.mrp) * 100) : 0,
+      categoryName: p.category.name, primaryImage: p.images[0]?.url || "/images/placeholder.jpg",
       variantId: p.variants[0]?.id,
     };
-  });
+  }) };
 }

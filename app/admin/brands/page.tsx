@@ -1,9 +1,13 @@
+import { ListControls } from "@/components/common/ListControls";
+import { value, type ListPageProps } from "@/lib/listing";
 import React from "react";
 import { prisma } from "@/lib/db";
-import { Award } from "lucide-react";
 
-export default async function AdminBrandsPage() {
+export default async function AdminBrandsPage({ searchParams }: ListPageProps) {
+  const sp = await searchParams;
+  const q = value(sp, "q");
   const brands = await prisma.brand.findMany({
+    where: q ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { slug: { contains: q, mode: "insensitive" } }] } : {},
     include: { _count: { select: { products: true } } },
     orderBy: { createdAt: "desc" },
   });
@@ -15,6 +19,8 @@ export default async function AdminBrandsPage() {
         <p className="text-xs text-stone-500 mt-1">Manage partner weaving houses and designer labels.</p>
       </div>
 
+      <ListControls path="/admin/brands" params={sp} search="Search brands" />
+      {brands.length === 0 && <p>No matching brands.</p>}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {brands.map((b) => (
           <div key={b.id} className="p-5 bg-ivory-50 rounded-xl border gold-border space-y-3 shadow-sm">

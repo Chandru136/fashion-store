@@ -1,4 +1,6 @@
 "use client";
+import type { StorefrontCoupon } from "@/lib/storefront-coupons";
+
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -13,12 +15,13 @@ import { SignOutDialog } from "./SignOutDialog";
 import { getCartAction, removeCartItemAction, updateCartQtyAction } from "@/app/actions/cart.actions";
 
 interface HeaderProps {
+  coupons?: StorefrontCoupon[];
   cartItemCount?: number;
   wishlistCount?: number;
   user?: { id: string; name: string; email: string; role: string } | null;
 }
 
-export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderProps) {
+export function Header({ cartItemCount = 0, wishlistCount = 0, user, coupons = [] }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -62,7 +65,7 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user }: HeaderPro
   return (
     <header className="sc-header sticky top-0 z-40 bg-ivory-50/95 backdrop-blur-md border-b border-ivory-300 shadow-sm">
       <SignOutDialog open={isSignOutOpen} onClose={() => setIsSignOutOpen(false)} />
-      <AnnouncementBar />
+      <AnnouncementBar initialCoupons={coupons} />
 
       <div className={`${styles.headerRow} max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4`}>
         <button type="button" className={styles.menuButton} onClick={() => { setIsUserMenuOpen(false); setIsMobileMenuOpen(true); }} aria-label="Open menu" aria-haspopup="dialog" aria-expanded={isMobileMenuOpen} aria-controls="mobile-navigation"><Menu size={24} /></button>
