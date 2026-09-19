@@ -37,6 +37,10 @@ export default async function AdminProductsPage({ searchParams }: { searchParams
           <p className="text-xs text-stone-500 mt-1">Manage silk sarees, variants, prices, images, and inventory statuses.</p>
         </div>
 
+        <Link href="/admin/products/bulk-upload" className="inline-flex items-center gap-2 px-5 py-2.5 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border shadow-md hover:brightness-110">
+          Bulk Upload
+        </Link>
+
         <Link
           href="/admin/products/new"
           className="inline-flex items-center gap-2 px-5 py-2.5 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border shadow-md hover:brightness-110"
