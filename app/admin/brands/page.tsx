@@ -2,13 +2,14 @@ import { ListControls } from "@/components/common/ListControls";
 import { value, type ListPageProps } from "@/lib/listing";
 import React from "react";
 import { prisma } from "@/lib/db";
+import { BrandsClient } from "./BrandsClient";
 
 export default async function AdminBrandsPage({ searchParams }: ListPageProps) {
   const sp = await searchParams;
   const q = value(sp, "q");
   const brands = await prisma.brand.findMany({
     where: q ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { slug: { contains: q, mode: "insensitive" } }] } : {},
-    include: { _count: { select: { products: true } } },
+    select: { id: true, name: true, slug: true, description: true, logo: true, status: true, _count: { select: { products: true } } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -20,27 +21,7 @@ export default async function AdminBrandsPage({ searchParams }: ListPageProps) {
       </div>
 
       <ListControls path="/admin/brands" params={sp} search="Search brands" />
-      {brands.length === 0 && <p>No matching brands.</p>}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {brands.map((b) => (
-          <div key={b.id} className="p-5 bg-ivory-50 rounded-xl border gold-border space-y-3 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 wine-gradient-bg rounded-full flex items-center justify-center text-gold-300 font-bold font-brand-title">
-                {b.name.charAt(0)}
-              </div>
-              <div>
-                <h3 className="font-serif font-bold text-wine-900 text-sm">{b.name}</h3>
-                <p className="text-[10px] text-stone-400 font-mono">{b.slug}</p>
-              </div>
-            </div>
-            <p className="text-xs text-stone-600 font-light">{b.description || "Authentic weaving brand."}</p>
-            <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs font-bold text-wine-800">
-              <span>{b._count.products} Products</span>
-              <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] uppercase">{b.status}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      <BrandsClient brands={brands} />
     </div>
   );
 }
