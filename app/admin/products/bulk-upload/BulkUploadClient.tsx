@@ -82,7 +82,13 @@ export default function BulkUploadClient() {
     setSummary(null);
 
     try {
-      const result = await bulkCreateProductsAction(rows);
+      // SheetJS-parsed rows can contain non-plain values (e.g. Date objects
+      // for date-formatted cells) that Next.js Server Actions reject with
+      // "Only plain objects can be passed to Server Functions". Round-tripping
+      // through JSON strips anything non-serializable and guarantees plain
+      // objects reach the server.
+      const plainRows = JSON.parse(JSON.stringify(rows));
+      const result = await bulkCreateProductsAction(plainRows);
       setSummary(result);
       if (result.successCount > 0) {
         router.refresh();
