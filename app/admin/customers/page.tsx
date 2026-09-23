@@ -28,7 +28,7 @@ export default async function AdminCustomersPage({ searchParams }: ListPageProps
   const query = value(params, "q");
   const sort = choice(params, "sort", nameSorts.map(o => o.value), "newest");
   const status = choice(params, "status", ["ACTIVE", "INACTIVE", "BLOCKED"]);
-  const role = params.role === "CUSTOMER" || params.role === "ADMIN" ? params.role : "";
+  const role = choice(params, "role", ["CUSTOMER", "ADMIN"]);
   const where: Prisma.UserWhereInput = {
     ...(role === "CUSTOMER" ? { role: "CUSTOMER" as const } : role === "ADMIN" ? { role: { in: ["ADMIN", "SUPER_ADMIN"] as ("ADMIN" | "SUPER_ADMIN")[] } } : {}),
     ...(status ? { status } : {}),
@@ -39,9 +39,9 @@ export default async function AdminCustomersPage({ searchParams }: ListPageProps
       { addresses: { some: { phone: { contains: query, mode: "insensitive" } } } },
     ] } : {}),
   };
-  const total = role ? await prisma.user.count({ where }) : 0;
+  const total = await prisma.user.count({ where });
   const paging = pagination(total, value(params, "page"));
-  const customers = role ? await prisma.user.findMany({
+  const customers = await prisma.user.findMany({
     where, skip: paging.skip, take: paging.take,
     orderBy: [sort === "name" ? { name: "asc" } : { createdAt: sort === "oldest" ? "asc" : "desc" }, { id: "asc" }],
     select: {
@@ -56,7 +56,7 @@ export default async function AdminCustomersPage({ searchParams }: ListPageProps
         select: { id: true, orderNumber: true, total: true, status: true, paymentStatus: true, createdAt: true },
       },
     },
-  }) : [];
+  });
 
   return <div className="space-y-6">
     <div className="border-b border-stone-200 pb-4">
@@ -66,8 +66,6 @@ export default async function AdminCustomersPage({ searchParams }: ListPageProps
 
     <div className="space-y-4 rounded-xl border border-stone-200 bg-ivory-50 p-6 shadow-sm">
       <ListControls path="/admin/customers" params={params} search="Name, email or phone" sorts={nameSorts} filters={[{ key: "role", label: "Account role", options: options(["CUSTOMER", "ADMIN"]) }, { key: "status", label: "Status", options: options(["ACTIVE", "INACTIVE", "BLOCKED"]) }]} />
-      {!role && <p>Select an account role and apply to view accounts.</p>}
-      {role && <>
       <p className="text-sm text-stone-500">{total} matching {total === 1 ? "account" : "accounts"}</p>
 
       <div className="overflow-x-auto">
@@ -113,7 +111,6 @@ export default async function AdminCustomersPage({ searchParams }: ListPageProps
         </table>
       </div>
       <Pagination path="/admin/customers" params={params} {...paging} label="Accounts" />
-      </>}
     </div>
   </div>;
 }

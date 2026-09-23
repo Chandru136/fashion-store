@@ -4,10 +4,67 @@ import { prisma } from "@/lib/db";
 import { ProductSchema, ProductInput } from "@/lib/validations/product";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
+import { cookies } from "next/headers";
+import { verifySessionToken } from "@/lib/auth";
+import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 
 const categoryNamePattern = /^[\p{L}\p{N}][\p{L}\p{N} &'()\-/]{1,79}$/u;
 const slugify = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+async function saveCategory(name: string) {
+  const slug = slugify(name);
+  return prisma.category.upsert({ where: { slug }, update: { status: "ACTIVE" }, create: { name, slug, status: "ACTIVE" }, select: { id: true } });
+}
+
+const categoryDetailsSchema = z.object({
+  parentId: z.string().trim().max(100).nullable().default(null),
+  displayOrder: z.number().int().min(0).max(2147483647).default(0),
+  status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
+  productIds: z.array(z.string().min(1).max(100)).default([]),
+});
+
+export async function createCategoryAction(categoryName: string, details: z.input<typeof categoryDetailsSchema> = {}) {
+  try {
+    const session = await verifySessionToken((await cookies()).get(SESSION_COOKIE_NAME)?.value);
+    const user = session ? await prisma.user.findUnique({ where: { id: session.id }, select: { role: true, status: true } }) : null;
+    if (!user || user.status !== "ACTIVE" || user.role === "CUSTOMER") {
+      return { success: false, error: "You are not authorized to manage categories." };
+    }
+    const name = typeof categoryName === "string" ? categoryName.trim() : "";
+    if (!categoryNamePattern.test(name) || !slugify(name)) {
+      return { success: false, error: "Enter a valid category name (2–80 characters) containing at least one English letter or number." };
+    }
+    const { parentId, displayOrder, status, productIds } = categoryDetailsSchema.parse(details);
+    const selectedProductIds = [...new Set(productIds)];
+    const category = await prisma.$transaction(async (tx) => {
+      const created = await tx.category.create({
+        data: { name, slug: slugify(name), parentId: parentId || null, displayOrder, status },
+        select: { id: true },
+      });
+      if (selectedProductIds.length) {
+        const linked = await tx.product.updateMany({
+          where: { id: { in: selectedProductIds } },
+          data: { categoryId: created.id },
+        });
+        if (linked.count !== selectedProductIds.length) throw new Error("PRODUCT_SELECTION_CHANGED");
+      }
+      return created;
+    });
+    revalidatePath("/admin/categories");
+    revalidatePath("/admin/products/new");
+    revalidatePath("/admin/products");
+    revalidatePath("/admin/products/[id]/edit", "page");
+    revalidatePath("/", "layout");
+    return { success: true, categoryId: category.id };
+  } catch (error) {
+    if (error instanceof ZodError) return { success: false, error: "Check the parent category, display order, status, and selected products." };
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return { success: false, error: "A category with that name or slug already exists. Choose a different name." };
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") return { success: false, error: "The parent category is no longer available. Refresh and try again." };
+    if (error instanceof Error && error.message === "PRODUCT_SELECTION_CHANGED") return { success: false, error: "Some selected products are no longer available. Refresh and try again." };
+    return { success: false, error: "Failed to save category. Please try again." };
+  }
+}
 
 export async function createProductAction(input: ProductInput, newCategoryName?: string) {
   try {
@@ -15,8 +72,7 @@ export async function createProductAction(input: ProductInput, newCategoryName?:
     const name = newCategoryName?.trim();
     if (!categoryId) {
       if (!name || !categoryNamePattern.test(name)) return { success: false, error: "Enter a valid category name (2–80 characters)." };
-      const slug = slugify(name);
-      const category = await prisma.category.upsert({ where: { slug }, update: { status: "ACTIVE" }, create: { name, slug, status: "ACTIVE" }, select: { id: true } });
+      const category = await saveCategory(name);
       categoryId = category.id;
     }
     const validated = ProductSchema.parse({ ...input, categoryId });

@@ -4,7 +4,7 @@ import type { Prisma } from "@prisma/client";
 import React from "react";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { AdminProductActionsClient } from "./AdminProductActionsClient";
 
 export default async function AdminProductsPage({ searchParams }: ListPageProps) {
@@ -38,22 +38,23 @@ export default async function AdminProductsPage({ searchParams }: ListPageProps)
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 border-b border-stone-200 pb-4">
         <div>
           <h1 className="font-serif text-3xl font-bold text-wine-900">Products Catalog Management</h1>
           <p className="text-xs text-stone-500 mt-1">Manage silk sarees, variants, prices, images, and inventory statuses.</p>
         </div>
 
-        <Link href="/admin/products/bulk-upload" className="inline-flex items-center gap-2 px-5 py-2.5 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border shadow-md hover:brightness-110">
-          Bulk Upload
-        </Link>
-
-        <Link
-          href="/admin/products/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border shadow-md hover:brightness-110"
-        >
-          <Plus className="w-4 h-4 text-gold-400" /> Create New Product
-        </Link>
+        <div className="flex flex-wrap items-center gap-3 xl:ml-auto xl:shrink-0">
+          <Link href="/admin/products/bulk-upload" className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-wine-800 bg-ivory-50 text-wine-900 font-bold text-xs rounded uppercase hover:bg-stone-100">
+            <Upload className="w-4 h-4" /> Bulk Upload
+          </Link>
+          <Link
+            href="/admin/products/new"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase gold-border shadow-md hover:brightness-110"
+          >
+            <Plus className="w-4 h-4 text-gold-400" /> Create New Product
+          </Link>
+        </div>
       </div>
 
       {/* Product List Table */}
