@@ -152,9 +152,9 @@ export function ProductDetailClient({ product }: { product: any }) {
                 <Star key={i} className={`w-3.5 h-3.5 ${i < Math.floor(product.avgRating) ? "fill-amber-500 text-amber-500" : "text-stone-300"}`} />
               ))}
             </div>
-            <span className="font-bold text-wine-900">{product.avgRating}</span>
+            <span className="font-bold text-wine-900">{product.reviewCount ? product.avgRating : "Not yet rated"}</span>
             <span className="text-stone-400">•</span>
-            <span className="text-stone-600">{product.reviewCount} Patron Reviews</span>
+            <a href="#reviews" className="text-stone-600 underline underline-offset-4">{product.reviewCount} Patron Reviews · Write a review</a>
           </div>
         </div>
 

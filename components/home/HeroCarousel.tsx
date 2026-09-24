@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Banner {
   id: string;
@@ -111,9 +111,6 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
       {/* Arrow navigation — subtle, appears on hover on desktop */}
       {banners.length > 1 && (
         <>
-          <button type="button" onClick={() => setPaused(!paused)} aria-label={paused ? "Play banner slideshow" : "Pause banner slideshow"} className="absolute bottom-4 right-4 z-20 grid h-9 w-9 place-items-center rounded-full bg-ivory-50/90 text-wine-900">
-            {paused ? <Play size={15} /> : <Pause size={15} />}
-          </button>
           <button
             onClick={prev}
             aria-label="Previous slide"

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { publicReviewWhere } from "@/lib/reviews";
 
 export async function getHomepageData() {
   const [banners, collections, categories, bestsellers, newArrivals, featuredProducts] = await Promise.all([
@@ -26,7 +27,7 @@ export async function getHomepageData() {
         images: { orderBy: { sortOrder: "asc" } },
         variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
         category: { select: { name: true } },
-        reviews: { select: { rating: true } },
+        reviews: { where: publicReviewWhere, select: { rating: true } },
       },
       take: 8,
     }),
@@ -37,7 +38,7 @@ export async function getHomepageData() {
         images: { orderBy: { sortOrder: "asc" } },
         variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
         category: { select: { name: true } },
-        reviews: { select: { rating: true } },
+        reviews: { where: publicReviewWhere, select: { rating: true } },
       },
       orderBy: { createdAt: "desc" },
       take: 8,
@@ -49,7 +50,7 @@ export async function getHomepageData() {
         images: { orderBy: { sortOrder: "asc" } },
         variants: { where: { stock: { gt: 0 } }, orderBy: { price: "asc" }, take: 1 },
         category: { select: { name: true } },
-        reviews: { select: { rating: true } },
+        reviews: { where: publicReviewWhere, select: { rating: true } },
       },
       take: 8,
     }),
@@ -58,7 +59,7 @@ export async function getHomepageData() {
   const formatProducts = (products: any[]) =>
     products.map((p) => {
       const totalRating = p.reviews.reduce((sum: number, r: any) => sum + r.rating, 0);
-      const avgRating = p.reviews.length > 0 ? (totalRating / p.reviews.length).toFixed(1) : "5.0";
+      const avgRating = p.reviews.length > 0 ? (totalRating / p.reviews.length).toFixed(1) : "0";
       const discountPercent = p.mrp > p.sellingPrice ? Math.round(((p.mrp - p.sellingPrice) / p.mrp) * 100) : 0;
       const colors = Array.from(
         new Set(

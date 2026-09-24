@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, ShieldCheck, Truck, RefreshCw, Star, Heart, Share2, Check, MapPin } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductDetailClient } from "./ProductDetailClient";
+import { ProductReviews } from "@/components/product/ProductReviews";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const p = await params;
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ProductDetailPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ reviewPage?: string }> }) {
   const p = await params;
   const product = await getProductBySlug(p.slug);
 
@@ -71,6 +72,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
       {/* Client Gallery & Variant Interaction */}
       <ProductDetailClient product={product} />
+      <ProductReviews productId={product.id} slug={product.slug} page={(await searchParams).reviewPage} />
 
       {/* Related Products Section */}
       {product.relatedProducts && product.relatedProducts.length > 0 && (

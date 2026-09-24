@@ -2,6 +2,7 @@ import { facetOptions } from "@/lib/catalog-filters";
 import type { Prisma } from "@prisma/client";
 import { pagination, positiveInteger, nonnegativeNumber } from "@/lib/listing";
 import { prisma } from "@/lib/db";
+import { publicReviewWhere } from "@/lib/reviews";
 
 export interface ProductFilterParams {
   categorySlug?: string;
@@ -67,7 +68,7 @@ export async function getProducts(params: ProductFilterParams = {}) {
         brand: { select: { name: true, slug: true } },
         images: { orderBy: { sortOrder: "asc" } },
         variants: { include: { inventory: true } },
-        reviews: { select: { rating: true } },
+        reviews: { where: publicReviewWhere, select: { rating: true } },
       },
       orderBy: [orderBy, { id: "asc" }],
       skip: paging.skip,
@@ -77,7 +78,7 @@ export async function getProducts(params: ProductFilterParams = {}) {
   // Compute ratings & discount percentage
   const formattedProducts = products.map((p) => {
     const totalRating = p.reviews.reduce((sum, r) => sum + r.rating, 0);
-    const avgRating = p.reviews.length > 0 ? (totalRating / p.reviews.length).toFixed(1) : "5.0";
+    const avgRating = p.reviews.length > 0 ? (totalRating / p.reviews.length).toFixed(1) : "0";
     const discountPercent = p.mrp > p.sellingPrice ? Math.round(((p.mrp - p.sellingPrice) / p.mrp) * 100) : 0;
 
     return {
@@ -107,8 +108,8 @@ export async function getProductBySlug(slug: string) {
       images: { orderBy: { sortOrder: "asc" } },
       variants: { include: { inventory: true } },
       reviews: {
-        where: { status: "APPROVED" },
-        include: { user: { select: { name: true } } },
+        where: publicReviewWhere,
+        select: { rating: true },
         orderBy: { createdAt: "desc" },
       },
     },
@@ -117,7 +118,7 @@ export async function getProductBySlug(slug: string) {
   if (!product) return null;
 
   const totalRating = product.reviews.reduce((sum, r) => sum + r.rating, 0);
-  const avgRating = product.reviews.length > 0 ? (totalRating / product.reviews.length).toFixed(1) : "5.0";
+  const avgRating = product.reviews.length > 0 ? (totalRating / product.reviews.length).toFixed(1) : "0";
   const discountPercent = product.mrp > product.sellingPrice ? Math.round(((product.mrp - product.sellingPrice) / product.mrp) * 100) : 0;
 
   // Fetch related products from same category
@@ -129,7 +130,7 @@ export async function getProductBySlug(slug: string) {
     },
     include: {
       images: { orderBy: { sortOrder: "asc" } },
-      reviews: { select: { rating: true } },
+      reviews: { where: publicReviewWhere, select: { rating: true } },
     },
     take: 4,
   });
@@ -141,6 +142,8 @@ export async function getProductBySlug(slug: string) {
     discountPercent,
     relatedProducts: relatedProducts.map((p) => ({
       ...p,
+      reviewCount: p.reviews.length,
+      avgRating: p.reviews.length ? Number((p.reviews.reduce((sum, review) => sum + review.rating, 0) / p.reviews.length).toFixed(1)) : 0,
       primaryImage: p.images[0]?.url || "/images/placeholder.jpg",
       discountPercent: p.mrp > p.sellingPrice ? Math.round(((p.mrp - p.sellingPrice) / p.mrp) * 100) : 0,
     })),
