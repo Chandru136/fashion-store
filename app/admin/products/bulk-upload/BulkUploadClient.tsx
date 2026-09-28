@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
 import { bulkCreateProductsAction, BulkUploadSummary } from "@/app/actions/bulk-product.actions";
 import { BULK_UPLOAD_COLUMNS } from "@/lib/validations/bulk-product";
-import { Download, Upload, CheckCircle, XCircle, ArrowRight } from "lucide-react";
+import { Download, CheckCircle, XCircle, ArrowRight } from "lucide-react";
+import { attachBulkImageUrls, imageFileNames, resolveBulkImageFiles } from "@/lib/bulk-product-images";
 
 const TEMPLATE_EXAMPLE_ROW = {
   title: "Maharani Pure Kanchipuram Silk Saree",
@@ -26,6 +27,7 @@ const TEMPLATE_EXAMPLE_ROW = {
   description: "Handcrafted pure mulberry silk saree with certified gold zari border, woven by master artisans.",
   imageUrls: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800, https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=800",
   variantSku: "SC-DEMO-001-FREE",
+  imageFiles: "",
   color: "Royal Red",
   size: "Free Size",
   stock: 25,
@@ -45,12 +47,17 @@ export default function BulkUploadClient() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [summary, setSummary] = useState<BulkUploadSummary | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const uploadedImages = useRef(new Map<File, string>());
+  const imageInput = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setParseError(null);
+    setRows([]);
     setSummary(null);
     setFileName(file.name);
 
@@ -69,10 +76,11 @@ export default function BulkUploadClient() {
         }
 
         setRows(parsedRows);
-      } catch (err) {
+      } catch {
         setParseError("Could not read this file. Make sure it's a valid .xlsx or .csv file.");
       }
     };
+    reader.onerror = () => setParseError("Could not read this file. Please try again.");
     reader.readAsBinaryString(file);
   };
 
@@ -80,14 +88,34 @@ export default function BulkUploadClient() {
     if (rows.length === 0) return;
     setIsSubmitting(true);
     setSummary(null);
+    setParseError(null);
 
     try {
+      const needed = resolveBulkImageFiles(rows, imageFiles);
+      const urls = new Map<string, string>();
+      for (const [name, file] of needed) {
+        setUploadProgress(`Uploading images ${urls.size + 1}/${needed.size}...`);
+        let url = uploadedImages.current.get(file);
+        if (!url) {
+          const data = new FormData();
+          data.append("image", file);
+          const response = await fetch("/api/admin/product-images", { method: "POST", body: data });
+          const result = await response.json();
+          if (!response.ok || typeof result.url !== "string" || !result.url) {
+            throw new Error(result.error || `Failed to upload ${name}.`);
+          }
+          url = result.url as string;
+          uploadedImages.current.set(file, url);
+        }
+        urls.set(name, url);
+      }
+      setUploadProgress("Importing products...");
       // SheetJS-parsed rows can contain non-plain values (e.g. Date objects
       // for date-formatted cells) that Next.js Server Actions reject with
       // "Only plain objects can be passed to Server Functions". Round-tripping
       // through JSON strips anything non-serializable and guarantees plain
       // objects reach the server.
-      const plainRows = JSON.parse(JSON.stringify(rows));
+      const plainRows = JSON.parse(JSON.stringify(attachBulkImageUrls(rows, urls)));
       const result = await bulkCreateProductsAction(plainRows);
       setSummary(result);
       if (result.successCount > 0) {
@@ -97,6 +125,7 @@ export default function BulkUploadClient() {
       setParseError(err instanceof Error ? err.message : "Upload failed. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setUploadProgress("");
     }
   };
 
@@ -127,6 +156,7 @@ export default function BulkUploadClient() {
           type="file"
           accept=".xlsx,.xls,.csv"
           onChange={handleFileChange}
+          disabled={isSubmitting}
           className="w-full rounded border border-stone-300 px-3 py-2 text-xs file:mr-3 file:rounded file:border-0 file:bg-wine-900 file:px-3 file:py-2 file:text-xs file:font-bold file:text-gold-300"
         />
         {fileName && <p className="text-xs text-stone-500">Loaded: {fileName} ({rows.length} row{rows.length === 1 ? "" : "s"})</p>}
@@ -135,17 +165,69 @@ export default function BulkUploadClient() {
         )}
       </div>
 
-      {/* Step 3: Preview */}
+      <div className="p-5 bg-white rounded-xl border border-stone-200 space-y-3">
+        <h3 className="font-bold text-wine-900 text-sm">3. Select product images (optional)</h3>
+        <p className="text-xs text-stone-500">
+          For local images, enter exact filenames in the spreadsheet&apos;s imageFiles column,
+          separated by commas (for example: SC-001-front.jpg, SC-001-back.jpg), then select those files below.
+          Or select your files and assign them to each product below without editing Excel.
+          You can leave imageUrls empty when using files, or use both. URL images come first, followed by files
+          in the listed order; the first image is the main product image. Images embedded in Excel are not imported.
+        </p>
+        <label htmlFor="bulk-images" className="block text-xs font-semibold text-stone-700">Image files — JPEG, PNG, WebP, GIF or AVIF, up to 5 MB each</label>
+        <input id="bulk-images" ref={imageInput} type="file" multiple
+          accept="image/jpeg,image/png,image/webp,image/gif,image/avif" disabled={isSubmitting}
+          onChange={(event) => {
+            setImageFiles(Array.from(event.target.files ?? []));
+            setParseError(null);
+            setSummary(null);
+            uploadedImages.current.clear();
+          }}
+          className="w-full rounded border border-stone-300 px-3 py-2 text-xs"
+        />
+        {imageFiles.length > 0 && <p className="text-xs text-stone-500">Selected {imageFiles.length} images: {imageFiles.map((file) => file.name).join(", ")}</p>}
+        {imageFiles.length > 0 && rows.length > 0 && !summary && (
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {rows.map((row, index) => (
+              <fieldset key={index} disabled={isSubmitting} className="rounded border border-stone-200 p-3">
+                <legend className="text-xs font-semibold">Row {index + 2}: {String(row.title || row.sku || "Product")}</legend>
+                <p className="text-xs text-stone-500 mb-2">Choose this product&apos;s images. First selected is the main image when no URLs are provided.</p>
+                <div className="flex flex-wrap gap-3">
+                  {imageFiles.map((file, fileIndex) => (
+                    <label key={fileIndex} className="flex items-center gap-2 text-xs">
+                      <input type="checkbox" checked={imageFileNames(row.imageFiles).includes(file.name)}
+                        onChange={(event) => {
+                          const checked = event.target.checked;
+                          setRows((current) => current.map((item, rowIndex) => {
+                            if (rowIndex !== index) return item;
+                            const names = imageFileNames(item.imageFiles).filter((name) => name !== file.name);
+                            if (checked) names.push(file.name);
+                            return { ...item, imageFiles: names.join(", ") };
+                          }));
+                          setParseError(null);
+                        }} />
+                      {file.name}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-stone-500 mt-2">Assigned: {String(row.imageFiles || "None")}</p>
+              </fieldset>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Preview */}
       {rows.length > 0 && !summary && (
         <div className="p-5 bg-white rounded-xl border border-stone-200 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-wine-900 text-sm">3. Preview ({rows.length} products)</h3>
+            <h3 className="font-bold text-wine-900 text-sm">4. Preview ({rows.length} products)</h3>
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
               className="inline-flex items-center gap-2 px-5 py-2.5 wine-gradient-bg text-gold-300 font-bold text-xs rounded uppercase tracking-wider gold-border shadow hover:brightness-110 disabled:opacity-60"
             >
-              {isSubmitting ? "Importing..." : "Import All Products"} <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? uploadProgress || "Importing..." : "Import All Products"} <ArrowRight className="w-4 h-4" />
             </button>
           </div>
           <div className="overflow-x-auto max-h-96 overflow-y-auto border border-stone-200 rounded">
@@ -226,6 +308,10 @@ export default function BulkUploadClient() {
                 setRows([]);
                 setSummary(null);
                 setFileName(null);
+                setImageFiles([]);
+                setParseError(null);
+                uploadedImages.current.clear();
+                if (imageInput.current) imageInput.current.value = "";
               }}
               className="px-5 py-2.5 border border-stone-300 text-stone-700 font-bold text-xs rounded uppercase tracking-wider hover:bg-stone-50"
             >

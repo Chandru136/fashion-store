@@ -94,7 +94,7 @@ export async function bulkCreateProductsAction(rawRows: Record<string, any>[]): 
         .filter(Boolean);
 
       if (imageUrls.length === 0) {
-        throw new Error("No valid image URLs found");
+        throw new Error("Add at least one image using a URL or an uploaded file");
       }
 
       // Guard against duplicate SKU/slug before attempting the create —

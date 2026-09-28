@@ -26,7 +26,11 @@ export const BulkProductRowSchema = z.object({
   newArrival: sheetBoolean.optional().default(true),
   shortDescription: z.string().optional().default(""),
   description: z.string().min(1, "Description is required"),
-  imageUrls: z.string().min(1, "At least one image URL is required"), // comma-separated in the sheet
+  // File uploads are resolved to stored image paths before server validation.
+  imageUrls: z.string().default("").refine(
+    (value) => value.split(",").some((image) => image.trim()),
+    "Add at least one image using a URL or an uploaded file",
+  ),
   variantSku: z.string().min(1, "Variant SKU is required"),
   color: z.string().optional().default(""),
   size: z.string().optional().default(""),
@@ -56,6 +60,7 @@ export const BULK_UPLOAD_COLUMNS = [
   "shortDescription",
   "description",
   "imageUrls",
+  "imageFiles",
   "variantSku",
   "color",
   "size",

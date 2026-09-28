@@ -1,4 +1,5 @@
 import { ListControls, Pagination } from "@/components/common/ListControls";
+import { CustomerWhatsAppButton } from "@/components/admin/CustomerWhatsAppButton";
 import { pagination, value, choice, nameSorts, options, type ListPageProps } from "@/lib/listing";
 
 import { SESSION_COOKIE_NAME } from "@/lib/session-config";
@@ -71,12 +72,13 @@ export default async function AdminCustomersPage({ searchParams }: ListPageProps
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-stone-200 bg-stone-50 text-xs uppercase text-stone-600">
-            <tr>{["Customer", "Contact", "Status", "Joined", "Orders", "Details"].map(label => <th key={label} scope="col" className="p-3">{label}</th>)}</tr>
+            <tr>{["Customer", "Contact", "WhatsApp", "Status", "Joined", "Orders", "Details"].map(label => <th key={label} scope="col" className="p-3">{label}</th>)}</tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
             {customers.map(customer => <tr key={customer.id} className="align-top hover:bg-ivory-50">
               <td className="p-3 font-semibold text-wine-900">{customer.name || "Name not provided"}<p className="mt-1 text-xs font-normal text-stone-500">{customer.role.replaceAll("_", " ")}</p></td>
               <td className="p-3"><p className="break-all">{customer.email}</p><p className="mt-1 text-stone-500">{customer.phone || customer.addresses[0]?.phone || "Phone not provided"}</p></td>
+              <td className="p-3"><CustomerWhatsAppButton phone={customer.phone || customer.addresses[0]?.phone} name={customer.name} /></td>
               <td className="p-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${customer.status === "ACTIVE" ? "bg-emerald-100 text-emerald-800" : "bg-stone-100 text-stone-700"}`}>{customer.status}</span></td>
               <td className="whitespace-nowrap p-3 text-stone-500">{date(customer.createdAt)}</td>
               <td className="p-3">{customer._count.orders}</td>
@@ -106,7 +108,7 @@ export default async function AdminCustomersPage({ searchParams }: ListPageProps
                 </details>
               </td>
             </tr>)}
-            {customers.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-stone-500">{query || status || role ? "No accounts match your filters." : "No user accounts have been registered yet."}</td></tr>}
+            {customers.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-stone-500">{query || status || role ? "No accounts match your filters." : "No user accounts have been registered yet."}</td></tr>}
           </tbody>
         </table>
       </div>
