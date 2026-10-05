@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import { getHomepageContent } from "@/lib/services/homepage-content.service";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Flower2, Gem, HeartHandshake, Instagram, Leaf, Sparkles } from "lucide-react";
 import { getHomepageData } from "@/lib/services/homepage.service";
@@ -44,7 +45,7 @@ function ProductRow({ products }: { products: ProductCardProps[] }) {
 }
 
 export default async function HomePage() {
-  const [data, promoBanners] = await Promise.all([getHomepageData(), getActiveBanners("PROMO")]);
+  const [data, promoBanners, content] = await Promise.all([getHomepageData(), getActiveBanners("PROMO"), getHomepageContent()]);
   const heroBanners = data.banners.filter(banner => banner.placement === "HERO");
   const categories = data.categories.map((category, index) => ({ name: category.name, image: category.image || [silk, festive, occasion][index % 3], href: `/category/${category.slug}` }));
   const categoryIdeas = [
@@ -66,8 +67,8 @@ export default async function HomePage() {
 
     <section className={`${styles.section} ${styles.light}`} aria-labelledby="lookbook-heading">
       <div className={styles.container}>
-        <header className={styles.heading}><span className={styles.eyebrow}>A little tradition. A little you.</span><h2 id="lookbook-heading">Every drape tells <em>a story.</em></h2><p>Meet the colours, textures and details of your next favourite.</p></header>
-        <div className={styles.storyGrid}>{edits.map((item, index) => <Link key={item.name} href={item.href} className={styles.storyCard}><img src={item.image} alt={item.name} loading="lazy" className={item.detail ? styles.detailCrop : undefined} /><span className={styles.storyNumber}>0{index + 1} / THE EDIT</span><div className={styles.cardCaption}><p>{item.subtitle}</p><h3>{item.name}</h3><span>Explore the edit <ArrowUpRight size={17} /></span></div></Link>)}</div>
+        <header className={styles.heading}><span className={styles.eyebrow}>{content.lookbook.eyebrow}</span><h2 id="lookbook-heading">{content.lookbook.title} <em>{content.lookbook.emphasis}</em></h2><p>{content.lookbook.description}</p></header>
+        <div className={styles.storyGrid}>{content.lookbook.cards.map((item, index) => <Link key={index} href={item.href} className={styles.storyCard}><img src={item.image} alt={item.name} loading="lazy" className={item.detail ? styles.detailCrop : undefined} /><span className={styles.storyNumber}>0{index + 1} / THE EDIT</span><div className={styles.cardCaption}><p>{item.subtitle}</p><h3>{item.name}</h3><span>Explore the edit <ArrowUpRight size={17} /></span></div></Link>)}</div>
       </div>
     </section>
 
@@ -95,7 +96,7 @@ export default async function HomePage() {
     </section>
 
     <section className={`${styles.section} ${styles.light} ${styles.templeSection}`}>
-      <div className={`${styles.container} ${styles.templeLayout}`}><div className={styles.editorialIntro}><img src="/peacock-feather.svg" alt="" className={styles.feather} /><span className={styles.eyebrow}>Rooted in tradition</span><h2>Inspired by heritage.<br /><em>Made for your story.</em></h2><p>The graceful lines of a gopuram. The richness of a festive drape. Discover a celebration of South Indian colour and timeless style.</p><Link href="/products?sort=featured" className={styles.textLink}>Find your celebration <ArrowRight size={17} /></Link></div><div className={styles.templeGrid}>{[{ ...edits[0], name: "The Heritage Edit" }, { ...edits[1], name: "A Festive Reverie" }, { ...edits[2], name: "Modern Heirlooms" }].map(item => <Link key={item.name} href={item.href} className={styles.templeCard}><div className={styles.gopuramFrame}><div className={styles.gopuramImage}><img src={item.image} alt={item.name} loading="lazy" /><div className={styles.cardCaption}><Flower2 size={24} strokeWidth={1} /><h3>{item.name}</h3><p>Collection</p><span className={styles.templeShop}>Shop now</span></div></div></div><span className={styles.textLink}>Shop the edit <ArrowUpRight size={16} /></span></Link>)}</div></div>
+      <div className={`${styles.container} ${styles.templeLayout}`}><div className={styles.editorialIntro}><img src="/peacock-feather.svg" alt="" className={styles.feather} /><span className={styles.eyebrow}>{content.heritage.eyebrow}</span><h2>{content.heritage.title}<br /><em>{content.heritage.emphasis}</em></h2><p>{content.heritage.description}</p><Link href={content.heritage.buttonUrl} className={styles.textLink}>{content.heritage.buttonText} <ArrowRight size={17} /></Link></div><div className={styles.templeGrid}>{content.heritage.cards.map((item, index) => <Link key={index} href={item.href} className={styles.templeCard}><div className={styles.gopuramFrame}><div className={styles.gopuramImage}><img src={item.image} alt={item.name} loading="lazy" className={item.detail ? styles.detailCrop : undefined} /><div className={styles.cardCaption}><Flower2 size={24} strokeWidth={1} /><h3>{item.name}</h3><p>{item.subtitle}</p><span className={styles.templeShop}>Shop now</span></div></div></div><span className={styles.textLink}>Shop the edit <ArrowUpRight size={16} /></span></Link>)}</div></div>
     </section>
 
     <section className={`${styles.campaign} ${styles.dark}`}>

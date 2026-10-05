@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { menuItems } from "./navigation-data";
+import type { HomepageContent } from "@/lib/homepage-content";
 import { ChevronDown, Sparkles, Tag, Award } from "lucide-react";
 
-export function MegaMenu() {
+export function MegaMenu({ navigation, newArrivals }: Pick<HomepageContent, "navigation" | "newArrivals">) {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
 
@@ -14,7 +14,7 @@ export function MegaMenu() {
     <nav className="relative hidden xl:block bg-wine-900 border-t border-b gold-border text-ivory-50 text-xs shadow-md">
       <div className="max-w-7xl mx-auto px-4 hidden md:flex items-center justify-between">
         <ul className="flex items-center space-x-1 lg:space-x-4">
-          {menuItems.map((item) => (
+          {navigation.map((item) => (
             <li
               key={item.id}
               className="py-3 group"
@@ -25,7 +25,7 @@ export function MegaMenu() {
               onKeyDown={(event) => { if (event.key === "Escape") setActiveMenu(null); }}
             >
               <Link
-                href={item.categories[0]?.href || "/products"}
+                href={item.href}
                 className="px-2.5 py-1 font-semibold tracking-wider text-ivory-100 group-hover:text-gold-300 transition-colors flex items-center gap-1 uppercase"
               >
                 {item.label}
@@ -122,8 +122,8 @@ export function MegaMenu() {
           ))}
 
           <li>
-            <Link href="/products?newArrival=true" className="px-3 py-1 font-bold text-gold-300 hover:text-gold-200 transition-colors uppercase tracking-wider">
-              NEW ARRIVALS ✦
+            <Link href={newArrivals.href} className="px-3 py-1 font-bold text-gold-300 hover:text-gold-200 transition-colors uppercase tracking-wider">
+              {newArrivals.label} ✦
             </Link>
           </li>
         </ul>

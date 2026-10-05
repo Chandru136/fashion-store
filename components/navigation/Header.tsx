@@ -14,14 +14,18 @@ import { CartDrawer } from "@/components/cart/CartDrawer";
 import { SignOutDialog } from "./SignOutDialog";
 import { getCartAction, removeCartItemAction, updateCartQtyAction } from "@/app/actions/cart.actions";
 
+import type { HomepageContent } from "@/lib/homepage-content";
+
 interface HeaderProps {
+  navigation: HomepageContent["navigation"];
+  newArrivals: HomepageContent["newArrivals"];
   coupons?: StorefrontCoupon[];
   cartItemCount?: number;
   wishlistCount?: number;
   user?: { id: string; name: string; email: string; role: string } | null;
 }
 
-export function Header({ cartItemCount = 0, wishlistCount = 0, user, coupons = [] }: HeaderProps) {
+export function Header({ navigation, newArrivals, cartItemCount = 0, wishlistCount = 0, user, coupons = [] }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -228,10 +232,10 @@ export function Header({ cartItemCount = 0, wishlistCount = 0, user, coupons = [
         </div>
       </div>
 
-      <MobileMenu open={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} user={user} cartCount={cartData.itemCount ?? cartItemCount} wishlistCount={wishlistCount} onOpenCart={() => setIsCartOpen(true)} onSignOut={handleLogout} />
+      <MobileMenu navigation={navigation} newArrivals={newArrivals} open={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} user={user} cartCount={cartData.itemCount ?? cartItemCount} wishlistCount={wishlistCount} onOpenCart={() => setIsCartOpen(true)} onSignOut={handleLogout} />
 
       {/* Mega Navigation Bar */}
-      <MegaMenu />
+      <MegaMenu navigation={navigation} newArrivals={newArrivals} />
 
       {/* Cart Drawer Modal */}
       <CartDrawer

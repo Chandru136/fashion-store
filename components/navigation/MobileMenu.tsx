@@ -3,10 +3,12 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Heart, ShoppingBag, User, X, Search, LogOut, ChevronDown } from "lucide-react";
-import { menuItems } from "./navigation-data";
+import type { HomepageContent } from "@/lib/homepage-content";
 import styles from "./Header.module.css";
 
 interface MobileMenuProps {
+  navigation: HomepageContent["navigation"];
+  newArrivals: HomepageContent["newArrivals"];
   open: boolean;
   onClose: () => void;
   user?: { name: string; role: string } | null;
@@ -16,7 +18,7 @@ interface MobileMenuProps {
   onSignOut: () => void;
 }
 
-export function MobileMenu({ open, onClose, user, cartCount, wishlistCount, onOpenCart, onSignOut }: MobileMenuProps) {
+export function MobileMenu({ navigation, newArrivals, open, onClose, user, cartCount, wishlistCount, onOpenCart, onSignOut }: MobileMenuProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const closeCallback = useRef(onClose);
   closeCallback.current = onClose;
@@ -60,11 +62,12 @@ export function MobileMenu({ open, onClose, user, cartCount, wishlistCount, onOp
           <Link href="/cart">View cart & checkout</Link>
         </div>
         <Link href="/products" className={styles.menuLink}>Shop all collections</Link>
-        <Link href="/products?sort=newest" className={styles.menuLink}>New arrivals</Link>
-        {menuItems.map(item => (
+        <Link href={newArrivals.href} className={styles.menuLink}>{newArrivals.label}</Link>
+        {navigation.map(item => (
           <details key={item.id} className={styles.categoryGroup}>
             <summary>{item.label}<ChevronDown size={17} /></summary>
             <div className={styles.submenu}>
+              <Link href={item.href}>Shop {item.label}</Link>
               {item.categories.map(category => <Link key={category.name} href={category.href}>{category.name}</Link>)}
               {item.priceRanges.length > 0 && <><h3>Shop by price</h3>{item.priceRanges.map(price => <Link key={price.label} href={price.href}>{price.label}</Link>)}</>}
               {item.brands.length > 0 && <><h3>Featured brands</h3>{item.brands.map(brand => <Link key={brand.name} href={brand.href}>{brand.name}</Link>)}</>}
