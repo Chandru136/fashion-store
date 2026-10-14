@@ -59,7 +59,7 @@ export default async function HomePage() {
     { name: "All Collections", image: silk, href: "/products" },
   ];
   const allCategories = [...categories, ...categoryIdeas].slice(0, 8);
-  const collections = data.collections.length ? data.collections.map(item => ({ name: item.name, subtitle: item.description || "A new expression of tradition.", image: item.image, href: `/products?q=${encodeURIComponent(item.name)}` })) : edits;
+  const collections = data.collections.length ? data.collections.map(item => ({ name: item.name, subtitle: item.description || "A new expression of tradition.", image: item.image, mobileImage: item.mobileImage, buttonText: item.buttonText, href: item.buttonUrl })) : edits;
 
   return <div className={styles.landing}>
     <HeroCarousel banners={heroBanners.length ? heroBanners : [{ id: "SC-hero", title: "Tradition, beautifully reimagined.", subtitle: "The Sudha Collections celebration edit", desktopImage: festive, buttonText: "Discover the collection", buttonUrl: "/products" }]} />

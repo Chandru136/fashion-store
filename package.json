@@ -10,6 +10,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
+    "db:provision-admin": "tsx scripts/provision-admin.ts",
     "test:coupons": "node --import tsx --test tests/coupons.test.ts",
     "test:listing": "node --import tsx --test tests/listing.test.ts",
     "test:payments": "node --import tsx --test tests/payments.test.ts",

@@ -9,6 +9,9 @@ import { cookies } from "next/headers";
 import { verifySessionToken } from "@/lib/auth";
 import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 
+import { AuthorizationError, requireAdminPermission } from "@/lib/admin-authorization";
+import { hasPermission, PERMISSIONS } from "@/lib/permissions";
+
 const categoryNamePattern = /^[\p{L}\p{N}][\p{L}\p{N} &'()\-/]{1,79}$/u;
 const slugify = (value: string) => value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
@@ -68,6 +71,7 @@ export async function createCategoryAction(categoryName: string, details: z.inpu
 
 export async function createProductAction(input: ProductInput, newCategoryName?: string) {
   try {
+    await requireAdminPermission(PERMISSIONS.CREATE_PRODUCTS);
     let categoryId = input.categoryId;
     const name = newCategoryName?.trim();
     if (!categoryId) {
@@ -140,16 +144,30 @@ export async function createProductAction(input: ProductInput, newCategoryName?:
 
 export async function updateProductAction(id: string, input: ProductInput) {
   try {
+    const actor = await requireAdminPermission(PERMISSIONS.UPDATE_PRODUCTS);
+    const canUpdateInventory = hasPermission(actor.role, PERMISSIONS.UPDATE_INVENTORY);
     const validated = ProductSchema.parse(input);
     const existing = await prisma.product.findUnique({ where: { id }, include: { images: { orderBy: { sortOrder: "asc" }, take: 1 }, variants: { take: 1 } } });
     if (!existing) return { success: false, error: "Product not found." };
+    if (validated.status !== existing.status && ["INACTIVE", "ARCHIVED"].includes(validated.status) && !hasPermission(actor.role, PERMISSIONS.DELETE_PRODUCTS)) throw new AuthorizationError(403);
     const product = await prisma.$transaction(async (tx) => {
-      const updated = await tx.product.update({ where: { id }, data: { name: validated.name, slug: validated.slug, sku: validated.sku, description: validated.description, shortDescription: validated.shortDescription || null, categoryId: validated.categoryId, brandId: validated.brandId || null, mrp: validated.mrp, sellingPrice: validated.sellingPrice, tax: validated.tax, fabric: validated.fabric || null, occasion: validated.occasion || null, pattern: validated.pattern || null, status: validated.status, featured: validated.featured, bestseller: validated.bestseller, newArrival: validated.newArrival } });
+      const updated = await tx.product.update({ where: { id }, data: { name: validated.name, slug: validated.slug, sku: validated.sku, description: validated.description, shortDescription: validated.shortDescription || null, categoryId: validated.categoryId, brandId: validated.brandId || null, mrp: validated.mrp, sellingPrice: validated.sellingPrice, tax: validated.tax, fabric: validated.fabric || null, occasion: validated.occasion || null, pattern: validated.pattern || null, ...(validated.status !== existing.status ? { status: validated.status } : {}), featured: validated.featured, bestseller: validated.bestseller, newArrival: validated.newArrival } });
       const image = validated.images[0];
       if (existing.images[0]) await tx.productImage.update({ where: { id: existing.images[0].id }, data: { url: image.url, altText: image.altText || validated.name, isPrimary: true } });
       else await tx.productImage.create({ data: { productId: id, url: image.url, altText: image.altText || validated.name, isPrimary: true, sortOrder: 1 } });
       const variant = validated.variants[0];
-      if (existing.variants[0]) { await tx.productVariant.update({ where: { id: existing.variants[0].id }, data: { sku: variant.sku, color: variant.color || null, size: variant.size || null, fabric: variant.fabric || validated.fabric || null, price: variant.price, stock: variant.stock } }); await tx.inventory.upsert({ where: { variantId: existing.variants[0].id }, update: { availableStock: variant.stock }, create: { variantId: existing.variants[0].id, availableStock: variant.stock, reservedStock: 0, lowStockThreshold: 5 } }); }
+      if (existing.variants[0]) {
+        await tx.productVariant.update({ where: { id: existing.variants[0].id }, data: {
+          sku: variant.sku, color: variant.color || null, size: variant.size || null,
+          fabric: variant.fabric || validated.fabric || null, price: variant.price,
+          // Omit stock entirely: even a stale form must not overwrite live inventory.
+          ...(canUpdateInventory ? { stock: variant.stock } : {}),
+        } });
+        if (canUpdateInventory) await tx.inventory.upsert({
+          where: { variantId: existing.variants[0].id }, update: { availableStock: variant.stock },
+          create: { variantId: existing.variants[0].id, availableStock: variant.stock, reservedStock: 0, lowStockThreshold: 5 },
+        });
+      }
       return updated;
     });
 
@@ -165,12 +183,16 @@ export async function updateProductAction(id: string, input: ProductInput) {
 }
 
 export async function setProductStatusAction(id: string, status: "ACTIVE" | "ARCHIVED" | "INACTIVE") {
-  try { const product = await prisma.product.update({ where: { id }, data: { status } }); revalidatePath("/"); revalidatePath("/products"); revalidatePath("/admin/products"); revalidatePath(`/products/${product.slug}`); return { success: true }; }
+  try {
+    await requireAdminPermission(status === "ACTIVE" ? PERMISSIONS.UPDATE_PRODUCTS : PERMISSIONS.DELETE_PRODUCTS);
+    z.enum(["ACTIVE", "ARCHIVED", "INACTIVE"]).parse(status);
+    const product = await prisma.product.update({ where: { id }, data: { status } }); revalidatePath("/"); revalidatePath("/products"); revalidatePath("/admin/products"); revalidatePath(`/products/${product.slug}`); return { success: true }; }
   catch (error: unknown) { return { success: false, error: error instanceof Error ? error.message : "Failed to update product status" }; }
 }
 
 export async function deleteProductAction(id: string) {
   try {
+    await requireAdminPermission(PERMISSIONS.DELETE_PRODUCTS);
     const product = await prisma.product.update({ where: { id }, data: { status: "INACTIVE" } });
     revalidatePath("/");
     revalidatePath("/products");
@@ -184,6 +206,7 @@ export async function deleteProductAction(id: string) {
 
 export async function updateStockAction(variantId: string, stock: number) {
   try {
+    await requireAdminPermission(PERMISSIONS.UPDATE_INVENTORY);
     if (!Number.isInteger(stock) || stock < 0) return { success: false, error: "Stock must be a whole number of 0 or more." };
     await prisma.$transaction(async (tx) => {
       await tx.productVariant.update({ where: { id: variantId }, data: { stock } });

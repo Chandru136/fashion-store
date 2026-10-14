@@ -40,6 +40,7 @@
 .collectionTabs button[aria-pressed="true"] { color: var(--gold-300); border-color: currentColor; }
 .editGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
 .editCard { aspect-ratio: 3/4.7; animation: enter 600ms ease both; }
+.editCard picture { display: block; width: 100%; height: 100%; }
 .editCard .cardCaption { padding: 20px 15px; }
 .editCard .cardCaption h3 { font-size: 23px; }
 .categoryRow { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 25px; }

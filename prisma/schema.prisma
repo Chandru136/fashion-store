@@ -434,6 +434,7 @@ model Collection {
   image        String
   mobileImage  String?
   buttonText   String? @default("Explore Now")
+  buttonUrl    String  @default("/products")
   status       String  @default("ACTIVE")
   displayOrder Int     @default(0)
 

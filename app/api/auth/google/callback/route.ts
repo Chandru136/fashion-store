@@ -49,6 +49,11 @@ export async function GET(request: NextRequest) {
       user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
       if (user) {
+        // Reject suspended accounts before linking or changing any account data.
+        if (user.status !== "ACTIVE") {
+          return NextResponse.redirect(loginErrorUrl("This account has been suspended."));
+        }
+
         // Existing LOCAL account with this email — link the Google id to it
         // rather than creating a second account with the same email.
         user = await prisma.user.update({

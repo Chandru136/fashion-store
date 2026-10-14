@@ -40,7 +40,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
       </div>
 
       {/* Admin Status Updater Widget */}
-      <AdminOrderStatusUpdaterClient orderId={order.id} currentStatus={order.status} currentTracking={order.trackingNumber || ""} />
+      <AdminOrderStatusUpdaterClient paymentStatus={order.paymentStatus} orderId={order.id} currentStatus={order.status} currentTracking={order.trackingNumber || ""} />
 
       <PaymentManagementControls admin orderId={order.id} canCancel={["PENDING", "CONFIRMED", "PROCESSING", "PACKED"].includes(order.status)} canRefund={["CANCELLED", "RETURNED"].includes(order.status) && order.paymentStatus === "PAID"} />
 

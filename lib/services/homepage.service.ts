@@ -11,7 +11,7 @@ export async function getHomepageData() {
     // Editorial Collections
     prisma.collection.findMany({
       where: { status: "ACTIVE" },
-      orderBy: { displayOrder: "asc" },
+      orderBy: [{ displayOrder: "asc" }, { id: "asc" }],
       take: 6,
     }),
     // Top Categories

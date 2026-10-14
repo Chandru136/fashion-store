@@ -4,6 +4,7 @@ import { test, mock } from "node:test";
 import nodemailer from "nodemailer";
 import { prisma } from "../lib/db";
 import { createOrderFromCart } from "../lib/services/order.service";
+import { updateOrderFulfillment, cancelOrder } from "../lib/payments/lifecycle.service";
 import { applyPayment, preparePayment } from "../lib/payments/checkout.service";
 import { runPaymentMaintenance, processWebhook } from "../lib/payments/maintenance.service";
 import { GET as health } from "../app/api/payments/health/route";
@@ -53,6 +54,15 @@ test("isolated worker: expires stock/coupons once, refunds late payments, enforc
       currency: nextCheckout.currency, status: "captured", captured: true }, "MOCK");
     assert.equal((await prisma.cartItem.findFirstOrThrow({ where: { cartId: cart.id } })).quantity, 1,
       "successful payment preserves quantities added after checkout");
+    await updateOrderFulfillment(nextOrder.id, "PROCESSING", user.id);
+    await updateOrderFulfillment(nextOrder.id, "PACKED", user.id);
+    await updateOrderFulfillment(nextOrder.id, "SHIPPED", user.id, "SC-AWB-TEST");
+    await updateOrderFulfillment(nextOrder.id, "SHIPPED", user.id, "SC-AWB-TEST");
+    assert.equal((await prisma.inventory.findUniqueOrThrow({ where: { variantId } })).reservedStock, 0);
+    assert.equal((await prisma.inventory.findUniqueOrThrow({ where: { variantId } })).availableStock, 2);
+    assert.ok((await prisma.order.findUniqueOrThrow({ where: { id: nextOrder.id } })).inventoryCommittedAt);
+    await assert.rejects(() => cancelOrder(nextOrder.id, { userId: user.id, admin: true }, "SC already shipped"));
+    await updateOrderFulfillment(nextOrder.id, "DELIVERED", user.id);
     await prisma.paymentMaintenance.update({ where: { id: "payments" }, data: { lockedUntil: new Date(Date.now() + 60000) } });
     assert.deepEqual(await runPaymentMaintenance(), { skipped: true });
     await prisma.paymentMaintenance.update({ where: { id: "payments" }, data: { lockedUntil: new Date(0) } });

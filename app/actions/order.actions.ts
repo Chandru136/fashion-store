@@ -3,7 +3,7 @@
 import { SESSION_COOKIE_NAME } from "@/lib/session-config";
 
 import { createOrderFromCart } from "@/lib/services/order.service";
-import { CreateOrderSchema, CreateOrderInput } from "@/lib/validations/order";
+import { CreateOrderSchema, CreateOrderInput, UpdateOrderStatusSchema } from "@/lib/validations/order";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
@@ -11,6 +11,10 @@ import { verifySessionToken, getSessionUser } from "@/lib/auth";
 import { sendEmail } from "@/lib/mailer";
 import { orderStatusUpdateHtml } from "@/lib/email-templates";
 
+
+import { requireAdminPermission } from "@/lib/admin-authorization";
+import { PERMISSIONS } from "@/lib/permissions";
+import { updateOrderFulfillment } from "@/lib/payments/lifecycle.service";
 
 async function getUserIdFromSession() {
   const cookieStore = await cookies();
@@ -83,16 +87,11 @@ export async function createOrderAction(input: CreateOrderInput) {
   }
 }
 
-export async function updateOrderStatusAction(orderId: string, status: any, trackingNumber?: string) {
+export async function updateOrderStatusAction(orderId: string, status: unknown, trackingNumber?: string) {
   try {
-    const updated = await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        status,
-        ...(trackingNumber ? { trackingNumber } : {}),
-      },
-      include: { items: true, user: { select: { name: true, email: true } } },
-    });
+    const actor = await requireAdminPermission(PERMISSIONS.UPDATE_ORDERS);
+    const validated = UpdateOrderStatusSchema.parse({ orderId, status, trackingNumber });
+    const { order: updated, changed } = await updateOrderFulfillment(validated.orderId, validated.status, actor.id, validated.trackingNumber);
 
     revalidatePath(`/admin/orders`);
     revalidatePath(`/admin/orders/${orderId}`);
@@ -102,7 +101,7 @@ export async function updateOrderStatusAction(orderId: string, status: any, trac
     // CONFIRMED/PROCESSING to avoid over-emailing for routine internal steps —
     // customers mainly care about shipped/out-for-delivery/delivered/cancelled.
     const notifyStatuses = ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED", "RETURNED", "REFUNDED"];
-    if (notifyStatuses.includes(updated.status)) {
+    if (changed && notifyStatuses.includes(updated.status)) {
       await sendEmail({
         to: updated.user.email,
         subject: `Order Update — #${updated.orderNumber} is now ${updated.status.replace(/_/g, " ")}`,

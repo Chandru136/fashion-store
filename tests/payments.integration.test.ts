@@ -1,4 +1,4 @@
-import { cancelOrder, processRefund } from "../lib/payments/lifecycle.service";
+import { cancelOrder, processRefund, updateOrderFulfillment } from "../lib/payments/lifecycle.service";
 import { POST as webhookPOST } from "../app/api/payments/razorpay/webhook/route";
 import { processWebhook } from "../lib/payments/maintenance.service";
 import { createHmac } from "node:crypto";
@@ -84,6 +84,18 @@ test("database payment lifecycle: retries, ownership, tampering, concurrent call
     const paid = await prisma.order.findUniqueOrThrow({ where: { id: order.id }, include: { payments: true } });
     assert.equal(paid.status, "CONFIRMED");
     assert.equal(paid.payments[0].transactionId, captured.id);
+    await assert.rejects(() => updateOrderFulfillment(order.id, "SHIPPED", userId));
+    await assert.rejects(() => updateOrderFulfillment(order.id, "REFUNDED", userId));
+    await updateOrderFulfillment(order.id, "PROCESSING", userId);
+    await updateOrderFulfillment(order.id, "PACKED", userId);
+    await assert.rejects(() => updateOrderFulfillment(order.id, "CONFIRMED", userId));
+    // An inconsistent paid record must roll back before touching stock/refund state.
+    await prisma.payment.update({ where: { id: paid.payments[0].id }, data: { transactionId: null } });
+    await assert.rejects(() => cancelOrder(order.id, { userId, admin: false }, "SC inconsistent payment"));
+    assert.equal((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status, "PACKED");
+    assert.equal(await prisma.paymentRefund.count({ where: { paymentId: paid.payments[0].id } }), 0);
+    assert.equal((await prisma.inventory.findUniqueOrThrow({ where: { variantId } })).reservedStock, 1);
+    await prisma.payment.update({ where: { id: paid.payments[0].id }, data: { transactionId: captured.id } });
     await assert.rejects(() => cancelOrder(order.id, { userId: "other-user", admin: false }, "Not owner"));
     await Promise.all([cancelOrder(order.id, { userId, admin: false }, "Test cancellation"), cancelOrder(order.id, { userId, admin: false }, "Duplicate cancellation")]);
     assert.equal((await prisma.productVariant.findUniqueOrThrow({ where: { id: variantId } })).stock, 5);
@@ -122,6 +134,16 @@ test("database payment lifecycle: retries, ownership, tampering, concurrent call
     assert.equal((await cartItems())[0].quantity, 1);
     assert.equal(emails.length, 2);
 
+    // Disposable-database-only race: both paths must use the same order lock.
+    const racingOrder = await createOrderFromCart({ ...params, checkoutKey: randomUUID() });
+    await prisma.payment.update({ where: { id: racingOrder.payments[0].id }, data: { gatewayOrderId: "order_SCRace123" } });
+    await Promise.all([
+      cancelOrder(racingOrder.id, { userId, admin: false }, "SC capture/cancel race"),
+      applyPayment({ ...captured, id: "pay_SCRace123", order_id: "order_SCRace123", amount: Math.round(racingOrder.total * 100) }),
+    ]);
+    assert.equal((await prisma.order.findUniqueOrThrow({ where: { id: racingOrder.id } })).status, "CANCELLED");
+    assert.equal(await prisma.paymentRefund.count({ where: { paymentId: racingOrder.payments[0].id } }), 1);
+    assert.equal((await prisma.inventory.findUniqueOrThrow({ where: { variantId } })).reservedStock, 0);
     assert.equal((await prisma.productVariant.findUniqueOrThrow({ where: { id: variantId } })).stock, 5);
   } finally {
     transport.mock.restore();
